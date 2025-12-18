@@ -16,7 +16,7 @@ public class EquipmentType {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String name;
+    private String typeName;
     private String manufacturer;
     private String model;
     private Integer defaultPortCount;

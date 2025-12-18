@@ -9,6 +9,7 @@ import lombok.Setter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @AllArgsConstructor
@@ -33,8 +34,8 @@ public class Equipment {
     private String ipAddress;
     private String address;
     private String status;
-    private LocalDateTime dateAdded;
-    private LocalDateTime dateUpdated;
+    private LocalDate dateAdded;
+    private LocalDate dateUpdated;
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "technical_params", columnDefinition = "JSON")
     private JsonNode technicalParams;
