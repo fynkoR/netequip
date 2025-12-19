@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Порты оборудования - NetEquip</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<nav class="navbar">
+    <div class="nav-brand">🌐 NetEquip</div>
+    <ul class="nav-menu">
+        <li><a href="index.html">Дашборд</a></li>
+        <li><a href="equipment-types.html">Типы оборудования</a></li>
+        <li><a href="employees.html">Сотрудники</a></li>
+        <li><a href="equipment.html">Оборудование</a></li>
+        <li><a href="device-ports.html" class="active">Порты</a></li>
+        <li><a href="ip-addresses.html">IP-адреса</a></li>
+        <li><a href="maintenance.html">Обслуживание</a></li>
+    </ul>
+</nav>
+
+<div class="container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <h1>🔌 Порты оборудования</h1>
+        <button class="btn btn-primary" onclick="openModal()">➕ Добавить порт</button>
+    </div>
+
+    <!-- Фильтры и поиск -->
+    <div class="filters">
+        <div class="filter-row">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="🔍 Поиск по оборудованию, описанию..." onkeyup="filterTable()">
+            </div>
+            <select id="equipmentFilter" onchange="filterTable()">
+                <option value="">Всё оборудование</option>
+            </select>
+            <select id="statusFilter" onchange="filterTable()">
+                <option value="">Все статусы</option>
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+                <option value="Reserved">Reserved</option>
+            </select>
+            <select id="typeFilter" onchange="filterTable()">
+                <option value="">Все типы</option>
+            </select>
+            <select id="connectionFilter" onchange="filterTable()">
+                <option value="">Все подключения</option>
+                <option value="connected">Подключённые</option>
+                <option value="available">Свободные</option>
+            </select>
+            <button class="btn btn-secondary" onclick="resetFilters()">🔄 Сбросить</button>
+        </div>
+    </div>
+
+    <!-- Статистика -->
+    <div class="stats-mini">
+        <div class="stat-mini-card">
+            <span class="stat-mini-label">Всего портов:</span>
+            <span class="stat-mini-value" id="totalCount">0</span>
+        </div>
+        <div class="stat-mini-card">
+            <span class="stat-mini-label">Активных:</span>
+            <span class="stat-mini-value" id="activeCount">0</span>
+        </div>
+        <div class="stat-mini-card">
+            <span class="stat-mini-label">Подключённых:</span>
+            <span class="stat-mini-value" id="connectedCount">0</span>
+        </div>
+        <div class="stat-mini-card">
+            <span class="stat-mini-label">Отображено:</span>
+            <span class="stat-mini-value" id="displayedCount">0</span>
+        </div>
+    </div>
+
+    <!-- Таблица портов -->
+    <div class="table-container">
+        <table id="portsTable">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Оборудование</th>
+                <th>Порт №</th>
+                <th>Тип</th>
+                <th>Статус</th>
+                <th>Скорость</th>
+                <th>Подключено к</th>
+                <th>Описание</th>
+                <th>Действия</th>
+            </tr>
+            </thead>
+            <tbody id="portsBody">
+            <tr><td colspan="9" class="loading">Загрузка данных...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Модальное окно добавления/редактирования -->
+<div id="modal" class="modal">
+    <div class="modal-content modal-large">
+        <div class="modal-header">
+            <h2 id="modalTitle">Добавить порт</h2>
+            <span class="modal-close" onclick="closeModal()">✖</span>
+        </div>
+        <form id="portForm" onsubmit="savePort(event)">
+            <input type="hidden" id="portId">
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="equipmentId">Оборудование *</label>
+                    <select id="equipmentId" required>
+                        <option value="">Выберите оборудование...</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="portNumber">Номер порта *</label>
+                    <input type="number"
+                           id="portNumber"
+                           required
+                           min="1"
+                           max="256"
+                           placeholder="1">
+                    <small class="form-hint">От 1 до 256</small>
+                </div>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="portType">Тип порта</label>
+                    <input type="text"
+                           id="portType"
+                           placeholder="Ethernet, Fiber, SFP..."
+                           list="portTypeList">
+                    <datalist id="portTypeList">
+                        <option value="Ethernet">
+                        <option value="Fast Ethernet">
+                        <option value="Gigabit Ethernet">
+                        <option value="10G Ethernet">
+                        <option value="Fiber">
+                        <option value="SFP">
+                        <option value="SFP+">
+                        <option value="QSFP">
+                        <option value="USB">
+                        <option value="Console">
+                    </datalist>
+                </div>
+
+                <div class="form-group">
+                    <label for="status">Статус *</label>
+                    <select id="status" required>
+                        <option value="Active">Active</option>
+                        <option value="Inactive">Inactive</option>
+                        <option value="Reserved">Reserved</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="speed">Скорость</label>
+                    <input type="text"
+                           id="speed"
+                           placeholder="1 Gbps, 10 Gbps..."
+                           list="speedList">
+                    <datalist id="speedList">
+                        <option value="10 Mbps">
+                        <option value="100 Mbps">
+                        <option value="1 Gbps">
+                        <option value="10 Gbps">
+                        <option value="25 Gbps">
+                        <option value="40 Gbps">
+                        <option value="100 Gbps">
+                    </datalist>
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Описание</label>
+                    <input type="text"
+                           id="description"
+                           placeholder="Краткое описание порта">
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>Подключение к другому порту (опционально)</h3>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="connectedToEquipmentId">Оборудование назначения</label>
+                        <select id="connectedToEquipmentId" onchange="loadTargetPorts()">
+                            <option value="">Не подключено</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="connectedToPortId">Порт назначения</label>
+                        <select id="connectedToPortId" disabled>
+                            <option value="">Сначала выберите оборудование</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button type="submit" class="btn btn-success">💾 Сохранить</button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal()">Отмена</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Модальное окно просмотра деталей -->
+<div id="detailsModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>📋 Детали порта</h2>
+            <span class="modal-close" onclick="closeDetailsModal()">✖</span>
+        </div>
+        <div class="details-content">
+            <div class="detail-row">
+                <span class="detail-label">ID:</span>
+                <span class="detail-value" id="detailId"></span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Оборудование:</span>
+                <span class="detail-value" id="detailEquipmentName"></span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Номер порта:</span>
+                <span class="detail-value" id="detailPortNumber"></span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Тип:</span>
+                <span class="detail-value" id="detailPortType"></span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Статус:</span>
+                <span class="detail-value" id="detailStatus"></span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Скорость:</span>
+                <span class="detail-value" id="detailSpeed"></span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Подключено к:</span>
+                <span class="detail-value" id="detailConnection"></span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Описание:</span>
+                <span class="detail-value" id="detailDescription"></span>
+            </div>
+        </div>
+        <div class="action-buttons">
+            <button class="btn btn-primary" onclick="editFromDetails()">✏️ Редактировать</button>
+            <button class="btn btn-warning" onclick="disconnectFromDetails()">🔌 Отключить</button>
+            <button class="btn btn-secondary" onclick="closeDetailsModal()">Закрыть</button>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно подключения портов -->
+<div id="connectModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>🔗 Подключить порты</h2>
+            <span class="modal-close" onclick="closeConnectModal()">✖</span>
+        </div>
+        <div style="padding: 1rem;">
+            <p>Подключение порта: <strong id="sourcePortInfo"></strong></p>
+
+            <div class="form-group">
+                <label for="targetEquipmentSelect">Выберите оборудование назначения</label>
+                <select id="targetEquipmentSelect" onchange="loadTargetPortsForConnect()">
+                    <option value="">Выберите оборудование...</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="targetPortSelect">Выберите порт назначения</label>
+                <select id="targetPortSelect" disabled>
+                    <option value="">Сначала выберите оборудование</option>
+                </select>
+            </div>
+        </div>
+        <div class="action-buttons">
+            <button class="btn btn-success" onclick="confirmConnect()">🔗 Подключить</button>
+            <button class="btn btn-secondary" onclick="closeConnectModal()">Отмена</button>
+        </div>
+    </div>
+</div>
+
+<script src="js/api.js"></script>
+<script src="js/device-ports.js"></script>
+</body>
+</html>

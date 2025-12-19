@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IP-адреса - NetEquip</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<nav class="navbar">
+    <div class="nav-brand">🌐 NetEquip</div>
+    <ul class="nav-menu">
+        <li><a href="index.html">Дашборд</a></li>
+        <li><a href="equipment-types.html">Типы оборудования</a></li>
+        <li><a href="employees.html">Сотрудники</a></li>
+        <li><a href="equipment.html">Оборудование</a></li>
+        <li><a href="device-ports.html">Порты</a></li>
+        <li><a href="ip-addresses.html" class="active">IP-адреса</a></li>
+        <li><a href="maintenance.html">Обслуживание</a></li>
+    </ul>
+</nav>
+
+<div class="container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <h1>🌐 IP-адреса</h1>
+        <button class="btn btn-primary" onclick="openModal()">➕ Добавить IP-адрес</button>
+    </div>
+
+    <!-- Фильтры и поиск -->
+    <div class="filters">
+        <div class="filter-row">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="🔍 Поиск по IP, оборудованию, шлюзу..." onkeyup="filterTable()">
+            </div>
+            <select id="equipmentFilter" onchange="filterTable()">
+                <option value="">Всё оборудование</option>
+            </select>
+            <select id="networkTypeFilter" onchange="filterTable()">
+                <option value="">Все типы сети</option>
+            </select>
+            <select id="primaryFilter" onchange="filterTable()">
+                <option value="">Все IP</option>
+                <option value="true">Только основные</option>
+                <option value="false">Только дополнительные</option>
+            </select>
+            <button class="btn btn-secondary" onclick="resetFilters()">🔄 Сбросить</button>
+        </div>
+    </div>
+
+    <!-- Статистика -->
+    <div class="stats-mini">
+        <div class="stat-mini-card">
+            <span class="stat-mini-label">Всего IP-адресов:</span>
+            <span class="stat-mini-value" id="totalCount">0</span>
+        </div>
+        <div class="stat-mini-card">
+            <span class="stat-mini-label">Основных:</span>
+            <span class="stat-mini-value" id="primaryCount">0</span>
+        </div>
+        <div class="stat-mini-card">
+            <span class="stat-mini-label">Отображено:</span>
+            <span class="stat-mini-value" id="displayedCount">0</span>
+        </div>
+    </div>
+
+    <!-- Таблица IP-адресов -->
+    <div class="table-container">
+        <table id="ipAddressesTable">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>IP-адрес</th>
+                <th>Оборудование</th>
+                <th>Маска подсети</th>
+                <th>Шлюз</th>
+                <th>Тип сети</th>
+                <th>Основной</th>
+                <th>Дата назначения</th>
+                <th>Действия</th>
+            </tr>
+            </thead>
+            <tbody id="ipAddressesBody">
+            <tr><td colspan="9" class="loading">Загрузка данных...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Модальное окно добавления/редактирования -->
+<div id="modal" class="modal">
+    <div class="modal-content modal-large">
+        <div class="modal-header">
+            <h2 id="modalTitle">Добавить IP-адрес</h2>
+            <span class="modal-close" onclick="closeModal()">✖</span>
+        </div>
+        <form id="ipAddressForm" onsubmit="saveIpAddress(event)">
+            <input type="hidden" id="ipAddressId">
+
+            <div class="form-group">
+                <label for="equipmentId">Оборудование *</label>
+                <select id="equipmentId" required>
+                    <option value="">Выберите оборудование...</option>
+                </select>
+                <small class="form-hint">Выберите оборудование для привязки IP-адреса</small>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="ipAddress">IP-адрес *</label>
+                    <input type="text"
+                           id="ipAddress"
+                           required
+                           placeholder="192.168.1.1"
+                           pattern="^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"
+                           title="Введите корректный IPv4 адрес">
+                    <small class="form-hint">Формат IPv4: xxx.xxx.xxx.xxx</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="subnetMask">Маска подсети</label>
+                    <input type="text"
+                           id="subnetMask"
+                           placeholder="255.255.255.0"
+                           pattern="^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"
+                           list="subnetMaskList">
+                    <datalist id="subnetMaskList">
+                        <option value="255.255.255.0">
+                        <option value="255.255.0.0">
+                        <option value="255.0.0.0">
+                        <option value="255.255.255.128">
+                        <option value="255.255.255.192">
+                        <option value="255.255.255.224">
+                        <option value="255.255.255.240">
+                        <option value="255.255.255.248">
+                        <option value="255.255.255.252">
+                    </datalist>
+                </div>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="gateway">Шлюз</label>
+                    <input type="text"
+                           id="gateway"
+                           placeholder="192.168.1.254"
+                           pattern="^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$">
+                </div>
+
+                <div class="form-group">
+                    <label for="networkType">Тип сети</label>
+                    <input type="text"
+                           id="networkType"
+                           placeholder="LAN, WAN, DMZ..."
+                           list="networkTypeList">
+                    <datalist id="networkTypeList">
+                        <option value="LAN">
+                        <option value="WAN">
+                        <option value="DMZ">
+                        <option value="VLAN">
+                        <option value="Internet">
+                        <option value="Management">
+                    </datalist>
+                </div>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="assignedDate">Дата назначения</label>
+                    <input type="date" id="assignedDate">
+                    <small class="form-hint">Оставьте пустым для текущей даты</small>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="isPrimary">
+                        <span>Основной IP-адрес для оборудования</span>
+                    </label>
+                    <small class="form-hint">Только один IP может быть основным для оборудования</small>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button type="submit" class="btn btn-success">💾 Сохранить</button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal()">Отмена</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Модальное окно просмотра деталей -->
+<div id="detailsModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>📋 Детали IP-адреса</h2>
+            <span class="modal-close" onclick="closeDetailsModal()">✖</span>
+        </div>
+        <div class="details-content">
+            <div class="detail-row">
+                <span class="detail-label">ID:</span>
+                <span class="detail-value" id="detailId"></span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">IP-адрес:</span>
+                <span class="detail-value" id="detailIpAddress"></span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Оборудование:</span>
+                <span class="detail-value" id="detailEquipmentName"></span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Маска подсети:</span>
+                <span class="detail-value" id="detailSubnetMask"></span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Шлюз:</span>
+                <span class="detail-value" id="detailGateway"></span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Тип сети:</span>
+                <span class="detail-value" id="detailNetworkType"></span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Основной:</span>
+                <span class="detail-value" id="detailIsPrimary"></span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Дата назначения:</span>
+                <span class="detail-value" id="detailAssignedDate"></span>
+            </div>
+        </div>
+        <div class="action-buttons">
+            <button class="btn btn-primary" onclick="editFromDetails()">✏️ Редактировать</button>
+            <button class="btn btn-secondary" onclick="closeDetailsModal()">Закрыть</button>
+        </div>
+    </div>
+</div>
+
+<script src="js/api.js"></script>
+<script src="js/ip-addresses.js"></script>
+</body>
+</html>

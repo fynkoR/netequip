@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>История обслуживания - NetEquip</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<nav class="navbar">
+    <div class="nav-brand">🌐 NetEquip</div>
+    <ul class="nav-menu">
+        <li><a href="index.html">Дашборд</a></li>
+        <li><a href="equipment-types.html">Типы оборудования</a></li>
+        <li><a href="employees.html">Сотрудники</a></li>
+        <li><a href="equipment.html">Оборудование</a></li>
+        <li><a href="device-ports.html">Порты</a></li>
+        <li><a href="ip-addresses.html">IP-адреса</a></li>
+        <li><a href="maintenance.html" class="active">Обслуживание</a></li>
+    </ul>
+</nav>
+
+<div class="container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <h1>🔧 История обслуживания</h1>
+        <button class="btn btn-primary" onclick="openModal()">➕ Добавить запись</button>
+    </div>
+
+    <!-- Фильтры и поиск -->
+    <div class="filters">
+        <div class="filter-row">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="🔍 Поиск по оборудованию, описанию, сотруднику..." onkeyup="filterTable()">
+            </div>
+            <select id="equipmentFilter" onchange="filterTable()">
+                <option value="">Всё оборудование</option>
+            </select>
+            <select id="typeFilter" onchange="filterTable()">
+                <option value="">Все типы</option>
+                <option value="Routine">Routine</option>
+                <option value="Repair">Repair</option>
+                <option value="Upgrade">Upgrade</option>
+                <option value="Emergency">Emergency</option>
+                <option value="Preventive">Preventive</option>
+            </select>
+            <select id="employeeFilter" onchange="filterTable()">
+                <option value="">Все сотрудники</option>
+            </select>
+            <select id="dateRangeFilter" onchange="filterByDateRange()">
+                <option value="">Весь период</option>
+                <option value="7">Последние 7 дней</option>
+                <option value="30">Последние 30 дней</option>
+                <option value="90">Последние 90 дней</option>
+                <option value="365">Последний год</option>
+            </select>
+            <button class="btn btn-secondary" onclick="resetFilters()">🔄 Сбросить</button>
+        </div>
+    </div>
+
+    <!-- Статистика -->
+    <div class="stats-mini">
+        <div class="stat-mini-card">
+            <span class="stat-mini-label">Всего записей:</span>
+            <span class="stat-mini-value" id="totalCount">0</span>
+        </div>
+        <div class="stat-mini-card stat-warning">
+            <span class="stat-mini-label">Просроченных:</span>
+            <span class="stat-mini-value" id="overdueCount">0</span>
+        </div>
+        <div class="stat-mini-card">
+            <span class="stat-mini-label">Общая стоимость:</span>
+            <span class="stat-mini-value" id="totalCost">0 ₽</span>
+        </div>
+        <div class="stat-mini-card">
+            <span class="stat-mini-label">Отображено:</span>
+            <span class="stat-mini-value" id="displayedCount">0</span>
+        </div>
+    </div>
+
+    <!-- Таблица истории обслуживания -->
+    <div class="table-container">
+        <table id="maintenanceTable">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Дата обслуживания</th>
+                <th>Оборудование</th>
+                <th>Тип</th>
+                <th>Описание</th>
+                <th>Сотрудник</th>
+                <th>Стоимость</th>
+                <th>Следующее обслуживание</th>
+                <th>Действия</th>
+            </tr>
+            </thead>
+            <tbody id="maintenanceBody">
+            <tr><td colspan="9" class="loading">Загрузка данных...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Модальное окно добавления/редактирования -->
+<div id="modal" class="modal">
+    <div class="modal-content modal-large">
+        <div class="modal-header">
+            <h2 id="modalTitle">Добавить запись об обслуживании</h2>
+            <span class="modal-close" onclick="closeModal()">✖</span>
+        </div>
+        <form id="maintenanceForm" onsubmit="saveMaintenance(event)">
+            <input type="hidden" id="maintenanceId">
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="equipmentId">Оборудование *</label>
+                    <select id="equipmentId" required>
+                        <option value="">Выберите оборудование...</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="date">Дата и время обслуживания *</label>
+                    <input type="datetime-local" id="date" required>
+                    <small class="form-hint">Дата и время проведения работ</small>
+                </div>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="type">Тип обслуживания *</label>
+                    <select id="type" required>
+                        <option value="">Выберите тип...</option>
+                        <option value="Routine">Routine - Плановое</option>
+                        <option value="Repair">Repair - Ремонт</option>
+                        <option value="Upgrade">Upgrade - Обновление</option>
+                        <option value="Emergency">Emergency - Аварийное</option>
+                        <option value="Preventive">Preventive - Профилактическое</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="performedById">Выполнил сотрудник</label>
+                    <select id="performedById">
+                        <option value="">Не указан</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="description">Описание работ *</label>
+                <textarea id="description"
+                          rows="4"
+                          required
+                          placeholder="Подробное описание выполненных работ, обнаруженных проблем и их решений..."></textarea>
+                <small class="form-hint">Укажите детали проведённого обслуживания</small>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="cost">Стоимость работ (₽)</label>
+                    <input type="number"
+                           id="cost"
+                           min="0"
+                           step="0.01"
+                           placeholder="0.00">
+                    <small class="form-hint">Общая стоимость работ и материалов</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="nextMaintenanceDate">Дата следующего обслуживания</label>
+                    <input type="date" id="nextMaintenanceDate">
+                    <small class="form-hint">Планируемая дата следующего обслуживания</small>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button type="submit" class="btn btn-success">💾 Сохранить</button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal()">Отмена</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Модальное окно просмотра деталей -->
+<div id="detailsModal" class="modal">
+    <div class="modal-content modal-large">
+        <div class="modal-header">
+            <h2>📋 Детали обслуживания</h2>
+            <span class="modal-close" onclick="closeDetailsModal()">✖</span>
+        </div>
+        <div class="details-content">
+            <div class="detail-row">
+                <span class="detail-label">ID:</span>
+                <span class="detail-value" id="detailId"></span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Оборудование:</span>
+                <span class="detail-value" id="detailEquipmentName"></span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Дата обслуживания:</span>
+                <span class="detail-value" id="detailDate"></span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Тип:</span>
+                <span class="detail-value" id="detailType"></span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Выполнил:</span>
+                <span class="detail-value" id="detailPerformedBy"></span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Стоимость:</span>
+                <span class="detail-value" id="detailCost"></span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Следующее обслуживание:</span>
+                <span class="detail-value" id="detailNextDate"></span>
+            </div>
+            <div class="detail-row detail-full">
+                <span class="detail-label">Описание работ:</span>
+            </div>
+            <div class="detail-description" id="detailDescription"></div>
+        </div>
+        <div class="action-buttons">
+            <button class="btn btn-primary" onclick="editFromDetails()">✏️ Редактировать</button>
+            <button class="btn btn-secondary" onclick="closeDetailsModal()">Закрыть</button>
+        </div>
+    </div>
+</div>
+
+<script src="js/api.js"></script>
+<script src="js/maintenance.js"></script>
+</body>
+</html>
