@@ -1,17 +1,16 @@
 package com.example.netequip.dto.equipment;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.annotation.JsonRawValue;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.Map;
 
-/**
- * DTO для создания нового оборудования
- * Используется в POST запросах
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -20,7 +19,7 @@ public class CreateEquipmentDTO {
     @NotNull(message = "ID типа оборудования обязателен")
     private Long typeId;
 
-    private Long employeeId;  // Опционально: ответственный сотрудник
+    private Long employeeId;
 
     @NotBlank(message = "Название оборудования обязательно")
     @Size(max = 100, message = "Название не должно превышать 100 символов")
@@ -51,10 +50,10 @@ public class CreateEquipmentDTO {
             regexp = "Active|Inactive|Maintenance|Retired",
             message = "Статус должен быть: Active, Inactive, Maintenance или Retired"
     )
-    private String status = "Active";  // По умолчанию Active
+    private String status = "Active";
 
-    private LocalDate dateAdded;  // Если не указано, установится текущая дата
+    private LocalDate dateAdded;
 
-    // Технические параметры в формате JSON
-    private JsonNode technicalParams;
+    // ✅ ИЗМЕНИТЬ ТИП с JsonNode на Map<String, Object>
+    private Map<String, Object> technicalParams;
 }

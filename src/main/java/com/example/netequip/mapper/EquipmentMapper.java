@@ -33,11 +33,15 @@ public interface EquipmentMapper {
     /**
      * Конвертация Entity → List DTO (краткая информация)
      */
+    @Mapping(source = "type.id", target = "typeId")                    // ✅ ДОБАВИТЬ
     @Mapping(source = "type.typeName", target = "typeName")
     @Mapping(source = "type.manufacturer", target = "manufacturer")
     @Mapping(source = "type.model", target = "model")
+    @Mapping(source = "employee.id", target = "employeeId")            // ✅ ДОБАВИТЬ
+    @Mapping(source = "employee.fullName", target = "employeeFullName") // ✅ ДОБАВИТЬ
     @Mapping(target = "portsCount", ignore = true)  // Устанавливаем в Service
     EquipmentListDTO toListDTO(Equipment entity);
+
 
     /**
      * Конвертация Create DTO → Entity
@@ -46,6 +50,7 @@ public interface EquipmentMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "type", ignore = true)
     @Mapping(target = "employee", ignore = true)
+    @Mapping(target = "technicalParams", ignore = true)  // ✅ Игнорируем
     Equipment toEntity(CreateEquipmentDTO dto);
 
     /**
@@ -54,6 +59,7 @@ public interface EquipmentMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "type", ignore = true)
     @Mapping(target = "employee", ignore = true)
+    @Mapping(target = "technicalParams", ignore = true)  // ✅ Игнорируем
     Equipment toEntity(UpdateEquipmentDTO dto);
 
     /**
@@ -63,5 +69,6 @@ public interface EquipmentMapper {
     @Mapping(target = "type", ignore = true)
     @Mapping(target = "employee", ignore = true)
     @Mapping(target = "dateAdded", ignore = true)  // Дата добавления не меняется
+    @Mapping(target = "technicalParams", ignore = true)  // ✅ Игнорируем
     void updateEntityFromDTO(UpdateEquipmentDTO dto, @MappingTarget Equipment entity);
 }

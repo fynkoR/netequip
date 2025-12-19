@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.Map;
 
 /**
  * DTO для обновления существующего оборудования
@@ -55,5 +56,5 @@ public class UpdateEquipmentDTO {
 
     private LocalDate dateUpdated;
 
-    private JsonNode technicalParams;
+    private Map<String, Object> technicalParams;
 }
