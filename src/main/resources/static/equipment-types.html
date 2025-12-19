@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Типы оборудования - NetEquip</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<nav class="navbar">
+    <div class="nav-brand">🌐 NetEquip</div>
+    <ul class="nav-menu">
+        <li><a href="index.html">Дашборд</a></li>
+        <li><a href="equipment-types.html" class="active">Типы оборудования</a></li>
+        <li><a href="employees.html">Сотрудники</a></li>
+        <li><a href="equipment.html">Оборудование</a></li>
+        <li><a href="device-ports.html">Порты</a></li>
+        <li><a href="ip-addresses.html">IP-адреса</a></li>
+        <li><a href="maintenance.html">Обслуживание</a></li>
+    </ul>
+</nav>
+
+<div class="container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <h1>📦 Типы оборудования</h1>
+        <button class="btn btn-primary" onclick="openModal()">➕ Добавить тип</button>
+    </div>
+
+    <!-- Фильтры -->
+    <div class="filters">
+        <div class="filter-row">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="🔍 Поиск по названию, производителю, модели..." onkeyup="filterTable()">
+            </div>
+            <select id="osiFilter" onchange="filterTable()">
+                <option value="">Все уровни OSI</option>
+                <option value="L1">L1 - Физический</option>
+                <option value="L2">L2 - Канальный</option>
+                <option value="L3">L3 - Сетевой</option>
+                <option value="L3-L7">L3-L7 - Многоуровневый</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Таблица типов -->
+    <div class="table-container">
+        <table id="typesTable">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Тип оборудования</th>
+                <th>Производитель</th>
+                <th>Модель</th>
+                <th>Портов</th>
+                <th>Тип подключения</th>
+                <th>Уровень OSI</th>
+                <th>Действия</th>
+            </tr>
+            </thead>
+            <tbody id="typesBody">
+            <tr><td colspan="8" class="loading">Загрузка данных</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Модальное окно -->
+<div id="modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="modalTitle">Добавить тип оборудования</h2>
+            <span class="modal-close" onclick="closeModal()">✖</span>
+        </div>
+        <form id="equipmentTypeForm" onsubmit="saveEquipmentType(event)">
+            <input type="hidden" id="typeId">
+
+            <div class="form-group">
+                <label for="typeName">Название типа *</label>
+                <input type="text" id="typeName" required placeholder="Коммутатор, Маршрутизатор...">
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="manufacturer">Производитель *</label>
+                    <input type="text" id="manufacturer" required placeholder="Cisco, Huawei...">
+                </div>
+
+                <div class="form-group">
+                    <label for="model">Модель *</label>
+                    <input type="text" id="model" required placeholder="Catalyst 2960">
+                </div>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="defaultPortCount">Количество портов</label>
+                    <input type="number" id="defaultPortCount" min="1" max="256" placeholder="24">
+                </div>
+
+                <div class="form-group">
+                    <label for="osiLevel">Уровень OSI</label>
+                    <select id="osiLevel">
+                        <option value="">Не указан</option>
+                        <option value="L1">L1 - Физический</option>
+                        <option value="L2">L2 - Канальный</option>
+                        <option value="L3">L3 - Сетевой</option>
+                        <option value="L3-L7">L3-L7 - Многоуровневый</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="connectionType">Тип подключения</label>
+                <input type="text" id="connectionType" placeholder="Ethernet, Wi-Fi, Fiber...">
+            </div>
+
+            <div class="form-group">
+                <label for="description">Описание</label>
+                <textarea id="description" rows="3" placeholder="Краткое описание типа оборудования..."></textarea>
+            </div>
+
+            <div class="action-buttons">
+                <button type="submit" class="btn btn-success">💾 Сохранить</button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal()">Отмена</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="js/api.js"></script>
+<script src="js/equipment-types.js"></script>
+</body>
+</html>

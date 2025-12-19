@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Оборудование - NetEquip</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<nav class="navbar">
+    <div class="nav-brand">🌐 NetEquip</div>
+    <ul class="nav-menu">
+        <li><a href="index.html">Дашборд</a></li>
+        <li><a href="equipment-types.html">Типы оборудования</a></li>
+        <li><a href="employees.html">Сотрудники</a></li>
+        <li><a href="equipment.html" class="active">Оборудование</a></li>
+        <li><a href="device-ports.html">Порты</a></li>
+        <li><a href="ip-addresses.html">IP-адреса</a></li>
+        <li><a href="maintenance.html">Обслуживание</a></li>
+    </ul>
+</nav>
+
+<div class="container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <h1>🖥️ Оборудование</h1>
+        <button class="btn btn-primary" onclick="openModal()">➕ Добавить оборудование</button>
+    </div>
+
+    <!-- Фильтры -->
+    <div class="filters">
+        <div class="filter-row">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="🔍 Поиск по названию, IP, MAC, серийному номеру..." onkeyup="filterTable()">
+            </div>
+            <select id="statusFilter" onchange="filterTable()">
+                <option value="">Все статусы</option>
+                <option value="Active">Active - Активное</option>
+                <option value="Inactive">Inactive - Неактивное</option>
+                <option value="Maintenance">Maintenance - На обслуживании</option>
+                <option value="Retired">Retired - Списано</option>
+            </select>
+            <select id="typeFilter" onchange="filterTable()">
+                <option value="">Все типы</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Таблица оборудования -->
+    <div class="table-container">
+        <table id="equipmentTable">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Название</th>
+                <th>Тип</th>
+                <th>IP-адрес</th>
+                <th>MAC-адрес</th>
+                <th>Ответственный</th>
+                <th>Статус</th>
+                <th>Действия</th>
+            </tr>
+            </thead>
+            <tbody id="equipmentBody">
+            <tr><td colspan="8" class="loading">Загрузка данных</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Модальное окно -->
+<div id="modal" class="modal">
+    <div class="modal-content" style="max-width: 800px;">
+        <div class="modal-header">
+            <h2 id="modalTitle">Добавить оборудование</h2>
+            <span class="modal-close" onclick="closeModal()">✖</span>
+        </div>
+        <form id="equipmentForm" onsubmit="saveEquipment(event)">
+            <input type="hidden" id="equipmentId">
+
+            <h3>Основная информация</h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="typeId">Тип оборудования *</label>
+                    <select id="typeId" required>
+                        <option value="">Выберите тип</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="employeeId">Ответственный *</label>
+                    <select id="employeeId" required>
+                        <option value="">Выберите сотрудника</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="name">Название *</label>
+                    <input type="text" id="name" required placeholder="Core-Switch-01">
+                </div>
+
+                <div class="form-group">
+                    <label for="serialNumber">Серийный номер *</label>
+                    <input type="text" id="serialNumber" required placeholder="SN-12345">
+                </div>
+            </div>
+
+            <h3>Сетевые параметры</h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="ipAddress">IP-адрес</label>
+                    <input type="text" id="ipAddress" placeholder="192.168.1.1" pattern="^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$">
+                </div>
+
+                <div class="form-group">
+                    <label for="macAddress">MAC-адрес</label>
+                    <input type="text" id="macAddress" placeholder="00:1A:2B:3C:4D:5E" pattern="^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$">
+                </div>
+            </div>
+
+            <h3>Расположение и статус</h3>
+            <div class="form-group">
+                <label for="address">Адрес/Расположение</label>
+                <input type="text" id="address" placeholder="Серверная, стойка A, позиция 10">
+            </div>
+
+            <div class="form-group">
+                <label for="status">Статус *</label>
+                <select id="status" required>
+                    <option value="Active">Active - Активное</option>
+                    <option value="Inactive">Inactive - Неактивное</option>
+                    <option value="Maintenance">Maintenance - На обслуживании</option>
+                    <option value="Retired">Retired - Списано</option>
+                </select>
+            </div>
+
+            <h3>Технические параметры (JSON)</h3>
+            <div class="form-group">
+                <label for="technicalParams">Параметры (необязательно)</label>
+                <textarea id="technicalParams" rows="4" placeholder='{"ports": 24, "powerSupply": "Dual", "rackUnits": 1}'></textarea>
+                <small style="color: var(--secondary-color);">Формат JSON. Пример: {"ports": 48, "poeSupport": true}</small>
+            </div>
+
+            <div class="action-buttons">
+                <button type="submit" class="btn btn-success">💾 Сохранить</button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal()">Отмена</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Модальное окно просмотра -->
+<div id="viewModal" class="modal">
+    <div class="modal-content" style="max-width: 900px;">
+        <div class="modal-header">
+            <h2 id="viewTitle">Информация об оборудовании</h2>
+            <span class="modal-close" onclick="closeViewModal()">✖</span>
+        </div>
+        <div id="viewContent"></div>
+    </div>
+</div>
+
+<script src="js/api.js"></script>
+<script src="js/equipment.js"></script>
+</body>
+</html>

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NetEquip - Система учёта сетевого оборудования</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<nav class="navbar">
+    <div class="nav-brand">🌐 NetEquip</div>
+    <ul class="nav-menu">
+        <li><a href="index.html" class="active">Дашборд</a></li>
+        <li><a href="equipment-types.html">Типы оборудования</a></li>
+        <li><a href="employees.html">Сотрудники</a></li>
+        <li><a href="equipment.html">Оборудование</a></li>
+        <li><a href="device-ports.html">Порты</a></li>
+        <li><a href="ip-addresses.html">IP-адреса</a></li>
+        <li><a href="maintenance.html">Обслуживание</a></li>
+    </ul>
+</nav>
+
+<div class="container">
+    <h1>📊 Дашборд системы</h1>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">🖥️</div>
+            <div class="stat-value" id="totalEquipment">0</div>
+            <div class="stat-label">Единиц оборудования</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">✅</div>
+            <div class="stat-value" id="activeEquipment">0</div>
+            <div class="stat-label">Активных</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">👥</div>
+            <div class="stat-value" id="totalEmployees">0</div>
+            <div class="stat-label">Сотрудников</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">🔌</div>
+            <div class="stat-value" id="totalPorts">0</div>
+            <div class="stat-label">Портов</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">🌐</div>
+            <div class="stat-value" id="totalIPs">0</div>
+            <div class="stat-label">IP-адресов</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">🔧</div>
+            <div class="stat-value" id="totalMaintenance">0</div>
+            <div class="stat-label">Записей обслуживания</div>
+        </div>
+    </div>
+
+    <div class="quick-actions">
+        <h2>⚡ Быстрые действия</h2>
+        <div class="action-buttons">
+            <a href="equipment.html" class="btn btn-primary">➕ Добавить оборудование</a>
+            <a href="employees.html" class="btn btn-secondary">👤 Добавить сотрудника</a>
+            <a href="maintenance.html" class="btn btn-success">🔧 Записать обслуживание</a>
+            <a href="http://localhost:8080/swagger-ui/index.html" target="_blank" class="btn btn-info">📚 API Документация</a>
+        </div>
+    </div>
+
+    <div class="recent-section">
+        <h2>📋 Последнее оборудование</h2>
+        <div id="recentEquipment" class="table-container">
+            <table>
+                <thead>
+                <tr>
+                    <th>Название</th>
+                    <th>Тип</th>
+                    <th>IP-адрес</th>
+                    <th>Статус</th>
+                    <th>Действия</th>
+                </tr>
+                </thead>
+                <tbody id="recentEquipmentBody">
+                <tr><td colspan="5">Загрузка...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="js/api.js"></script>
+<script>
+    // Загрузка статистики
+    async function loadDashboard() {
+        try {
+            // Получаем все оборудование
+            const equipment = await api.get('/equipment');
+            document.getElementById('totalEquipment').textContent = equipment.length;
+
+            // Считаем активное
+            const active = equipment.filter(e => e.status === 'Active').length;
+            document.getElementById('activeEquipment').textContent = active;
+
+            // Сотрудники
+            const employees = await api.get('/employees');
+            document.getElementById('totalEmployees').textContent = employees.length;
+
+            // Порты
+            const ports = await api.get('/device-ports');
+            document.getElementById('totalPorts').textContent = ports.length;
+
+            // IP-адреса
+            const ips = await api.get('/ip-addresses');
+            document.getElementById('totalIPs').textContent = ips.length;
+
+            // Обслуживание
+            const maintenance = await api.get('/maintenance-history');
+            document.getElementById('totalMaintenance').textContent = maintenance.length;
+
+            // Показываем последние 5 единиц оборудования
+            displayRecentEquipment(equipment.slice(0, 5));
+
+        } catch (error) {
+            console.error('Ошибка загрузки дашборда:', error);
+        }
+    }
+
+    function displayRecentEquipment(equipment) {
+        const tbody = document.getElementById('recentEquipmentBody');
+
+        if (equipment.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5">Нет данных</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = equipment.map(item => `
+                <tr>
+                    <td>${item.name}</td>
+                    <td>${item.typeName || 'N/A'}</td>
+                    <td>${item.ipAddress || 'N/A'}</td>
+                    <td><span class="badge badge-${getStatusClass(item.status)}">${item.status}</span></td>
+                    <td>
+                        <a href="equipment.html?id=${item.id}" class="btn-small">Просмотр</a>
+                    </td>
+                </tr>
+            `).join('');
+    }
+
+    function getStatusClass(status) {
+        const map = {
+            'Active': 'success',
+            'Inactive': 'secondary',
+            'Maintenance': 'warning',
+            'Retired': 'danger'
+        };
+        return map[status] || 'secondary';
+    }
+
+    // Загрузка при старте
+    loadDashboard();
+</script>
+</body>
+</html>
