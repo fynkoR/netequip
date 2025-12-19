@@ -306,6 +306,168 @@ public class DevicePortService {
     }
 
     /**
+     * Получение портов по статусу (все устройства)
+     *
+     * @param status статус порта
+     * @return список портов с данным статусом
+     */
+    public List<DevicePortResponseDTO> getByStatus(String status) {
+        log.debug("Получение всех портов со статусом: {}", status);
+
+        List<DevicePort> entities = devicePortRepository.findAll().stream()
+                .filter(port -> status.equals(port.getStatus()))
+                .collect(Collectors.toList());
+        log.info("Найдено портов со статусом '{}': {}", status, entities.size());
+
+        return entities.stream()
+                .map(devicePortMapper::toResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Получение активных портов оборудования
+     *
+     * @param equipmentId ID оборудования
+     * @return список активных портов
+     */
+    public List<DevicePortResponseDTO> getActivePortsByEquipment(Long equipmentId) {
+        log.debug("Получение активных портов оборудования ID: {}", equipmentId);
+        return getByEquipmentAndStatus(equipmentId, "Active");
+    }
+
+    /**
+     * Получение свободных портов оборудования (алиас для getAvailablePorts)
+     *
+     * @param equipmentId ID оборудования
+     * @return список свободных портов
+     */
+    public List<DevicePortResponseDTO> getAvailablePortsByEquipment(Long equipmentId) {
+        log.debug("Получение свободных портов оборудования ID: {}", equipmentId);
+        return getAvailablePorts(equipmentId);
+    }
+
+    /**
+     * Получение портов по типу (все устройства)
+     *
+     * @param portType тип порта
+     * @return список портов данного типа
+     */
+    public List<DevicePortResponseDTO> getByPortType(String portType) {
+        log.debug("Получение всех портов типа: {}", portType);
+
+        List<DevicePort> entities = devicePortRepository.findAll().stream()
+                .filter(port -> portType.equals(port.getPortType()))
+                .collect(Collectors.toList());
+        log.info("Найдено портов типа '{}': {}", portType, entities.size());
+
+        return entities.stream()
+                .map(devicePortMapper::toResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Получение портов оборудования по типу и статусу
+     *
+     * @param equipmentId ID оборудования
+     * @param portType тип порта
+     * @param status статус порта
+     * @return список портов
+     */
+    public List<DevicePortResponseDTO> getByEquipmentAndTypeAndStatus(
+            Long equipmentId, String portType, String status) {
+        log.debug("Получение портов оборудования ID {} типа '{}' со статусом '{}'",
+                equipmentId, portType, status);
+
+        Equipment equipment = equipmentRepository.findById(equipmentId)
+                .orElseThrow(() -> new EquipmentTypeNotFoundException(equipmentId));
+
+        List<DevicePort> entities = devicePortRepository.findByEquipmentOrderByPortNumberAsc(equipment)
+                .stream()
+                .filter(port -> portType.equals(port.getPortType()) && status.equals(port.getStatus()))
+                .collect(Collectors.toList());
+        log.info("Найдено портов типа '{}' со статусом '{}' на оборудовании ID {}: {}",
+                portType, status, equipmentId, entities.size());
+
+        return entities.stream()
+                .map(devicePortMapper::toResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Изменение статуса порта
+     *
+     * @param portId ID порта
+     * @param newStatus новый статус
+     * @return обновленный порт
+     * @throws DevicePortNotFoundException если порт не найден
+     */
+    @Transactional
+    public DevicePortResponseDTO changeStatus(Long portId, String newStatus) {
+        log.info("Изменение статуса порта ID {} на: {}", portId, newStatus);
+
+        DevicePort port = devicePortRepository.findById(portId)
+                .orElseThrow(() -> new DevicePortNotFoundException(portId));
+
+        port.setStatus(newStatus);
+        DevicePort savedPort = devicePortRepository.save(port);
+        log.info("Статус порта ID {} изменен на '{}'", portId, newStatus);
+
+        return devicePortMapper.toResponseDTO(savedPort);
+    }
+
+    /**
+     * Получение порта, к которому подключён данный порт
+     *
+     * @param portId ID порта
+     * @return подключённый порт
+     * @throws DevicePortNotFoundException если порт не найден
+     * @throws PortNotConnectedException если порт не подключён
+     */
+    public DevicePortResponseDTO getConnectedPort(Long portId) {
+        log.debug("Получение подключённого порта для порта ID: {}", portId);
+
+        DevicePort port = devicePortRepository.findById(portId)
+                .orElseThrow(() -> new DevicePortNotFoundException(portId));
+
+        if (port.getConnectedToPort() == null) {
+            log.warn("Порт ID {} не подключён к другому порту", portId);
+            throw new PortNotConnectedException(portId);
+        }
+
+        return devicePortMapper.toResponseDTO(port.getConnectedToPort());
+    }
+
+    /**
+     * Проверка подключён ли порт к другому порту
+     *
+     * @param portId ID порта
+     * @return true если порт подключён
+     * @throws DevicePortNotFoundException если порт не найден
+     */
+    public boolean isPortConnected(Long portId) {
+        log.debug("Проверка подключения порта ID: {}", portId);
+
+        DevicePort port = devicePortRepository.findById(portId)
+                .orElseThrow(() -> new DevicePortNotFoundException(portId));
+
+        boolean connected = port.getConnectedToPort() != null;
+        log.debug("Порт ID {} подключён: {}", portId, connected);
+
+        return connected;
+    }
+
+    /**
+     * Подсчет активных портов оборудования
+     *
+     * @param equipmentId ID оборудования
+     * @return количество активных портов
+     */
+    public long countActivePortsByEquipment(Long equipmentId) {
+        return countByEquipmentAndStatus(equipmentId, "Active");
+    }
+
+
+    /**
      * Подключение двух портов друг к другу
      *
      * @param portId ID первого порта
