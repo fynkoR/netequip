@@ -13,6 +13,7 @@ import com.example.netequip.exception.equipment.EquipmentNotFoundException;
 import com.example.netequip.exception.equiptype.EquipmentTypeNotFoundException;
 import com.example.netequip.mapper.EquipmentMapper;
 import com.example.netequip.repository.*;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -52,6 +54,7 @@ public class EquipmentService {
      * @throws EmployeeNotFoundException если сотрудник не найден
      * @throws DuplicateEquipmentException если уникальные поля заняты
      */
+    @Transactional
     public EquipmentResponseDTO create(CreateEquipmentDTO dto) {
         log.info("Создание нового оборудования: {}", dto.getName());
 
@@ -69,16 +72,14 @@ public class EquipmentService {
         Equipment entity = equipmentMapper.toEntity(dto);
         entity.setType(type);
 
-        // ✅ ПРАВИЛЬНО (новый код):
+        // ✅ Конвертация technicalParams: Map → JSON String
         if (dto.getTechnicalParams() != null && !dto.getTechnicalParams().isEmpty()) {
             try {
-                // Конвертация Map → JSON String → JsonNode
                 String jsonString = objectMapper.writeValueAsString(dto.getTechnicalParams());
-                JsonNode jsonNode = objectMapper.readTree(jsonString);
-                entity.setTechnicalParams(jsonNode);
+                entity.setTechnicalParams(jsonString);
             } catch (Exception e) {
-                log.error("Ошибка конвертации technicalParams в JsonNode", e);
-                throw new IllegalArgumentException("Некорректный формат технических параметров");
+                log.error("Ошибка конвертации technicalParams в JSON", e);
+                throw new IllegalArgumentException("Некорректный формат технических параметров: " + e.getMessage());
             }
         }
 
@@ -179,17 +180,17 @@ public class EquipmentService {
         equipmentMapper.updateEntityFromDTO(dto, existingEntity);
         existingEntity.setType(newType);
 
-        // ✅ ДОБАВИТЬ: Обновление technicalParams
+        // ✅ Обновление technicalParams: Map → JSON String
         if (dto.getTechnicalParams() != null) {
             if (dto.getTechnicalParams().isEmpty()) {
                 existingEntity.setTechnicalParams(null);
             } else {
                 try {
-                    JsonNode jsonNode = objectMapper.valueToTree(dto.getTechnicalParams());
-                    existingEntity.setTechnicalParams(jsonNode);
+                    String jsonString = objectMapper.writeValueAsString(dto.getTechnicalParams());
+                    existingEntity.setTechnicalParams(jsonString);
                 } catch (Exception e) {
-                    log.error("Ошибка конвертации technicalParams в JsonNode", e);
-                    throw new IllegalArgumentException("Некорректный формат технических параметров");
+                    log.error("Ошибка конвертации technicalParams в JSON", e);
+                    throw new IllegalArgumentException("Некорректный формат технических параметров: " + e.getMessage());
                 }
             }
         }
@@ -207,9 +208,7 @@ public class EquipmentService {
         }
 
         // Установка даты обновления
-        if (dto.getDateUpdated() == null) {
-            existingEntity.setDateUpdated(LocalDate.now());
-        }
+        existingEntity.setDateUpdated(LocalDate.now());
 
         // Сохранение
         Equipment updatedEntity = equipmentRepository.save(existingEntity);
@@ -532,6 +531,21 @@ public class EquipmentService {
     private EquipmentResponseDTO toResponseDTOWithStats(Equipment entity) {
         EquipmentResponseDTO dto = equipmentMapper.toResponseDTO(entity);
 
+        // ✅ Конвертация technicalParams: JSON String → Map
+        if (entity.getTechnicalParams() != null && !entity.getTechnicalParams().isEmpty()) {
+            try {
+                Map<String, Object> params = objectMapper.readValue(
+                        entity.getTechnicalParams(),
+                        new TypeReference<Map<String, Object>>() {}
+                );
+                dto.setTechnicalParams(params);
+            } catch (Exception e) {
+                log.warn("Не удалось распарсить technicalParams для оборудования ID {}: {}",
+                        entity.getId(), e.getMessage());
+                dto.setTechnicalParams(null);
+            }
+        }
+
         // Добавление статистики
         dto.setPortsCount((int) devicePortRepository.countByEquipment(entity));
         dto.setIpAddressesCount((int) ipAddressRepository.countByEquipment(entity));
@@ -545,7 +559,10 @@ public class EquipmentService {
      */
     private EquipmentListDTO toListDTOWithStats(Equipment entity) {
         EquipmentListDTO dto = equipmentMapper.toListDTO(entity);
+
+        // Добавление счетчика портов
         dto.setPortsCount((int) devicePortRepository.countByEquipment(entity));
+
         return dto;
     }
 }

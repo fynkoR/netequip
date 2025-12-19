@@ -19,24 +19,12 @@ public class CreateDevicePortDTO {
     private Integer portNumber;
 
     @Size(max = 50, message = "Тип порта не должен превышать 50 символов")
-    @Pattern(
-            regexp = "RJ45|SFP|SFP\\+|QSFP|QSFP\\+|QSFP28|Console|USB",
-            message = "Тип порта должен быть: RJ45, SFP, SFP+, QSFP, QSFP+, QSFP28, Console или USB"
-    )
     private String portType;  // ✅ Теперь с валидацией!
 
     @Size(max = 20, message = "Статус не должен превышать 20 символов")
-    @Pattern(
-            regexp = "Active|Disabled|Error|Testing",
-            message = "Статус должен быть: Active, Disabled, Error или Testing"
-    )
     private String status = "Active";  // ✅ Теперь с валидацией!
 
     @Size(max = 20, message = "Скорость не должна превышать 20 символов")
-    @Pattern(
-            regexp = "10Mbps|100Mbps|1Gbps|10Gbps|25Gbps|40Gbps|100Gbps",
-            message = "Скорость должна быть: 10Mbps, 100Mbps, 1Gbps, 10Gbps, 25Gbps, 40Gbps или 100Gbps"
-    )
     private String speed;  // ✅ Теперь с валидацией!
 
     private Long connectedToEquipmentId;

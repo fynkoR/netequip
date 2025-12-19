@@ -25,9 +25,10 @@ public interface EquipmentMapper {
     @Mapping(source = "type.model", target = "model")
     @Mapping(source = "employee.id", target = "employeeId")
     @Mapping(source = "employee.fullName", target = "employeeFullName")
-    @Mapping(target = "portsCount", ignore = true)         // Устанавливаем в Service
-    @Mapping(target = "ipAddressesCount", ignore = true)   // Устанавливаем в Service
-    @Mapping(target = "maintenanceCount", ignore = true)   // Устанавливаем в Service
+    @Mapping(target = "technicalParams", ignore = true)      // ✅ ИГНОРИРОВАТЬ
+    @Mapping(target = "portsCount", ignore = true)
+    @Mapping(target = "ipAddressesCount", ignore = true)
+    @Mapping(target = "maintenanceCount", ignore = true)
     EquipmentResponseDTO toResponseDTO(Equipment entity);
 
     /**

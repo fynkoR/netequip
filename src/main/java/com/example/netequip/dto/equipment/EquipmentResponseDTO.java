@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.Map;
 
 /**
  * DTO для возврата полной информации об оборудовании
@@ -41,7 +42,7 @@ public class EquipmentResponseDTO {
     private LocalDate dateUpdated;
 
     // Технические параметры (JSON)
-    private JsonNode technicalParams;
+    private Map<String, Object> technicalParams;
 
     // Статистика (опционально)
     private Integer portsCount;        // Количество портов

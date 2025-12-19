@@ -38,5 +38,5 @@ public class Equipment {
     private LocalDate dateUpdated;
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "technical_params", columnDefinition = "JSON")
-    private JsonNode technicalParams;
+    private String technicalParams;
 }

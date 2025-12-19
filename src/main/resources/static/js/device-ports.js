@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // Загрузка списка оборудования
 async function loadEquipment() {
     try {
-        allEquipment = await api.get('/equipment');
+        allEquipment = await api.get('api/equipment');
         populateEquipmentSelect();
         populateEquipmentFilter();
         populateConnectedEquipmentSelect();
