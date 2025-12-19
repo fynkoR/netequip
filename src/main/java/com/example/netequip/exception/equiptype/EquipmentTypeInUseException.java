@@ -1,4 +1,4 @@
-package com.example.netequip.exception;
+package com.example.netequip.exception.equiptype;
 
 /**
  * Исключение выбрасывается при попытке удалить тип оборудования, который используется

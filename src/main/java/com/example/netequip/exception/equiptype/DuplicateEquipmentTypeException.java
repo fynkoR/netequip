@@ -1,4 +1,4 @@
-package com.example.netequip.exception;
+package com.example.netequip.exception.equiptype;
 
 public class DuplicateEquipmentTypeException extends RuntimeException {
 

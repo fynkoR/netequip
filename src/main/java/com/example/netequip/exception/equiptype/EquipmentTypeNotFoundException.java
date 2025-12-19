@@ -1,4 +1,4 @@
-package com.example.netequip.exception;
+package com.example.netequip.exception.equiptype;
 
 /**
  * Исключение выбрасывается когда тип оборудования не найден в базе данных
