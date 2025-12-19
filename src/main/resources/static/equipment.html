@@ -26,7 +26,7 @@
         <button class="btn btn-primary" onclick="openModal()">➕ Добавить оборудование</button>
     </div>
 
-    <!-- Фильтры -->
+    <!-- Фильтры и поиск -->
     <div class="filters">
         <div class="filter-row">
             <div class="search-box">
@@ -34,14 +34,38 @@
             </div>
             <select id="statusFilter" onchange="filterTable()">
                 <option value="">Все статусы</option>
-                <option value="Active">Active - Активное</option>
-                <option value="Inactive">Inactive - Неактивное</option>
-                <option value="Maintenance">Maintenance - На обслуживании</option>
-                <option value="Retired">Retired - Списано</option>
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+                <option value="Maintenance">Maintenance</option>
+                <option value="Retired">Retired</option>
             </select>
             <select id="typeFilter" onchange="filterTable()">
                 <option value="">Все типы</option>
             </select>
+            <select id="employeeFilter" onchange="filterTable()">
+                <option value="">Все ответственные</option>
+            </select>
+            <button class="btn btn-secondary" onclick="resetFilters()">🔄 Сбросить</button>
+        </div>
+    </div>
+
+    <!-- Статистика -->
+    <div class="stats-mini">
+        <div class="stat-mini-card">
+            <span class="stat-mini-label">Всего оборудования:</span>
+            <span class="stat-mini-value" id="totalCount">0</span>
+        </div>
+        <div class="stat-mini-card">
+            <span class="stat-mini-label">Активных:</span>
+            <span class="stat-mini-value" id="activeCount">0</span>
+        </div>
+        <div class="stat-mini-card">
+            <span class="stat-mini-label">На обслуживании:</span>
+            <span class="stat-mini-value" id="maintenanceCount">0</span>
+        </div>
+        <div class="stat-mini-card">
+            <span class="stat-mini-label">Отображено:</span>
+            <span class="stat-mini-value" id="displayedCount">0</span>
         </div>
     </div>
 
@@ -57,19 +81,20 @@
                 <th>MAC-адрес</th>
                 <th>Ответственный</th>
                 <th>Статус</th>
+                <th>Расположение</th>
                 <th>Действия</th>
             </tr>
             </thead>
             <tbody id="equipmentBody">
-            <tr><td colspan="8" class="loading">Загрузка данных</td></tr>
+            <tr><td colspan="9" class="loading">Загрузка данных...</td></tr>
             </tbody>
         </table>
     </div>
 </div>
 
-<!-- Модальное окно -->
+<!-- Модальное окно добавления/редактирования -->
 <div id="modal" class="modal">
-    <div class="modal-content" style="max-width: 800px;">
+    <div class="modal-content modal-large">
         <div class="modal-header">
             <h2 id="modalTitle">Добавить оборудование</h2>
             <span class="modal-close" onclick="closeModal()">✖</span>
@@ -77,69 +102,97 @@
         <form id="equipmentForm" onsubmit="saveEquipment(event)">
             <input type="hidden" id="equipmentId">
 
-            <h3>Основная информация</h3>
-            <div class="form-grid">
+            <div class="form-section">
+                <h3>📦 Основная информация</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="typeId">Тип оборудования *</label>
+                        <select id="typeId" required>
+                            <option value="">Выберите тип...</option>
+                        </select>
+                        <small class="form-hint">Тип определяет характеристики оборудования</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="employeeId">Ответственный сотрудник</label>
+                        <select id="employeeId">
+                            <option value="">Не назначен</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="name">Название *</label>
+                        <input type="text" id="name" required placeholder="Core-Switch-01" maxlength="100">
+                        <small class="form-hint">Уникальное название устройства</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="serialNumber">Серийный номер *</label>
+                        <input type="text" id="serialNumber" required placeholder="SN-123456789" maxlength="100">
+                        <small class="form-hint">Серийный номер производителя</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>🌐 Сетевые параметры</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="ipAddress">IP-адрес</label>
+                        <input type="text"
+                               id="ipAddress"
+                               placeholder="192.168.1.1"
+                               pattern="^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"
+                               title="Введите корректный IPv4 адрес">
+                        <small class="form-hint">Основной IP-адрес устройства</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="macAddress">MAC-адрес</label>
+                        <input type="text"
+                               id="macAddress"
+                               placeholder="00:1A:2B:3C:4D:5E"
+                               pattern="^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$"
+                               title="Формат: XX:XX:XX:XX:XX:XX или XX-XX-XX-XX-XX-XX">
+                        <small class="form-hint">Физический адрес устройства</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>📍 Расположение и статус</h3>
                 <div class="form-group">
-                    <label for="typeId">Тип оборудования *</label>
-                    <select id="typeId" required>
-                        <option value="">Выберите тип</option>
+                    <label for="address">Адрес/Расположение</label>
+                    <input type="text"
+                           id="address"
+                           placeholder="Серверная, стойка A, позиция 10"
+                           maxlength="200">
+                    <small class="form-hint">Физическое расположение оборудования</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="status">Статус *</label>
+                    <select id="status" required>
+                        <option value="Active">Active - Активное</option>
+                        <option value="Inactive">Inactive - Неактивное</option>
+                        <option value="Maintenance">Maintenance - На обслуживании</option>
+                        <option value="Retired">Retired - Списано</option>
                     </select>
                 </div>
-
-                <div class="form-group">
-                    <label for="employeeId">Ответственный *</label>
-                    <select id="employeeId" required>
-                        <option value="">Выберите сотрудника</option>
-                    </select>
-                </div>
             </div>
 
-            <div class="form-grid">
+            <div class="form-section">
+                <h3>⚙️ Технические параметры (JSON)</h3>
                 <div class="form-group">
-                    <label for="name">Название *</label>
-                    <input type="text" id="name" required placeholder="Core-Switch-01">
+                    <label for="technicalParams">Дополнительные параметры</label>
+                    <textarea id="technicalParams"
+                              rows="5"
+                              placeholder='{"ports": 24, "powerSupply": "Dual", "rackUnits": 1, "poeSupport": true}'></textarea>
+                    <small class="form-hint">Формат JSON. Пример: {"ports": 48, "speed": "10G", "poeSupport": true}</small>
                 </div>
-
-                <div class="form-group">
-                    <label for="serialNumber">Серийный номер *</label>
-                    <input type="text" id="serialNumber" required placeholder="SN-12345">
-                </div>
-            </div>
-
-            <h3>Сетевые параметры</h3>
-            <div class="form-grid">
-                <div class="form-group">
-                    <label for="ipAddress">IP-адрес</label>
-                    <input type="text" id="ipAddress" placeholder="192.168.1.1" pattern="^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$">
-                </div>
-
-                <div class="form-group">
-                    <label for="macAddress">MAC-адрес</label>
-                    <input type="text" id="macAddress" placeholder="00:1A:2B:3C:4D:5E" pattern="^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$">
-                </div>
-            </div>
-
-            <h3>Расположение и статус</h3>
-            <div class="form-group">
-                <label for="address">Адрес/Расположение</label>
-                <input type="text" id="address" placeholder="Серверная, стойка A, позиция 10">
-            </div>
-
-            <div class="form-group">
-                <label for="status">Статус *</label>
-                <select id="status" required>
-                    <option value="Active">Active - Активное</option>
-                    <option value="Inactive">Inactive - Неактивное</option>
-                    <option value="Maintenance">Maintenance - На обслуживании</option>
-                    <option value="Retired">Retired - Списано</option>
-                </select>
-            </div>
-
-            <h3>Технические параметры (JSON)</h3>
-            <div class="form-group">
-                <label for="technicalParams">Параметры (необязательно)</label>
-                <textarea id="technicalParams" rows="4" placeholder='{"ports": 24, "powerSupply": "Dual", "rackUnits": 1}'></textarea>
-                <small style="color: var(--secondary-color);">Формат JSON. Пример: {"ports": 48, "poeSupport": true}</small>
+                <button type="button" class="btn btn-secondary btn-small" onclick="validateJSON()">✓ Проверить JSON</button>
             </div>
 
             <div class="action-buttons">
@@ -150,14 +203,14 @@
     </div>
 </div>
 
-<!-- Модальное окно просмотра -->
+<!-- Модальное окно просмотра деталей -->
 <div id="viewModal" class="modal">
-    <div class="modal-content" style="max-width: 900px;">
+    <div class="modal-content modal-large">
         <div class="modal-header">
-            <h2 id="viewTitle">Информация об оборудовании</h2>
+            <h2 id="viewTitle">📋 Информация об оборудовании</h2>
             <span class="modal-close" onclick="closeViewModal()">✖</span>
         </div>
-        <div id="viewContent"></div>
+        <div id="viewContent" style="padding: 1.5rem;"></div>
     </div>
 </div>
 

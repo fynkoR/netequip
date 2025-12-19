@@ -32,6 +32,9 @@
             <div class="search-box">
                 <input type="text" id="searchInput" placeholder="🔍 Поиск по названию, производителю, модели..." onkeyup="filterTable()">
             </div>
+            <select id="manufacturerFilter" onchange="filterTable()">
+                <option value="">Все производители</option>
+            </select>
             <select id="osiFilter" onchange="filterTable()">
                 <option value="">Все уровни OSI</option>
                 <option value="L1">L1 - Физический</option>
@@ -39,6 +42,23 @@
                 <option value="L3">L3 - Сетевой</option>
                 <option value="L3-L7">L3-L7 - Многоуровневый</option>
             </select>
+            <button class="btn btn-secondary" onclick="resetFilters()">🔄 Сбросить</button>
+        </div>
+    </div>
+
+    <!-- Статистика -->
+    <div class="stats-mini">
+        <div class="stat-mini-card">
+            <span class="stat-mini-label">Всего типов:</span>
+            <span class="stat-mini-value" id="totalCount">0</span>
+        </div>
+        <div class="stat-mini-card">
+            <span class="stat-mini-label">Производителей:</span>
+            <span class="stat-mini-value" id="manufacturersCount">0</span>
+        </div>
+        <div class="stat-mini-card">
+            <span class="stat-mini-label">Отображено:</span>
+            <span class="stat-mini-value" id="displayedCount">0</span>
         </div>
     </div>
 
@@ -58,13 +78,13 @@
             </tr>
             </thead>
             <tbody id="typesBody">
-            <tr><td colspan="8" class="loading">Загрузка данных</td></tr>
+            <tr><td colspan="8" class="loading">Загрузка данных...</td></tr>
             </tbody>
         </table>
     </div>
 </div>
 
-<!-- Модальное окно -->
+<!-- Модальное окно добавления/редактирования -->
 <div id="modal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -76,25 +96,43 @@
 
             <div class="form-group">
                 <label for="typeName">Название типа *</label>
-                <input type="text" id="typeName" required placeholder="Коммутатор, Маршрутизатор...">
+                <input type="text"
+                       id="typeName"
+                       required
+                       maxlength="50"
+                       placeholder="Коммутатор, Маршрутизатор, Сервер...">
+                <small class="form-hint">Уникальное название типа оборудования</small>
             </div>
 
             <div class="form-grid">
                 <div class="form-group">
                     <label for="manufacturer">Производитель *</label>
-                    <input type="text" id="manufacturer" required placeholder="Cisco, Huawei...">
+                    <input type="text"
+                           id="manufacturer"
+                           required
+                           maxlength="50"
+                           placeholder="Cisco, Huawei, HP...">
                 </div>
 
                 <div class="form-group">
                     <label for="model">Модель *</label>
-                    <input type="text" id="model" required placeholder="Catalyst 2960">
+                    <input type="text"
+                           id="model"
+                           required
+                           maxlength="50"
+                           placeholder="Catalyst 2960, S5720...">
                 </div>
             </div>
 
             <div class="form-grid">
                 <div class="form-group">
                     <label for="defaultPortCount">Количество портов</label>
-                    <input type="number" id="defaultPortCount" min="1" max="256" placeholder="24">
+                    <input type="number"
+                           id="defaultPortCount"
+                           min="1"
+                           max="256"
+                           placeholder="24">
+                    <small class="form-hint">Стандартное количество портов</small>
                 </div>
 
                 <div class="form-group">
@@ -111,12 +149,30 @@
 
             <div class="form-group">
                 <label for="connectionType">Тип подключения</label>
-                <input type="text" id="connectionType" placeholder="Ethernet, Wi-Fi, Fiber...">
+                <input type="text"
+                       id="connectionType"
+                       maxlength="50"
+                       placeholder="Ethernet, Fiber, Wi-Fi..."
+                       list="connectionTypeList">
+                <datalist id="connectionTypeList">
+                    <option value="Ethernet">
+                    <option value="Fast Ethernet">
+                    <option value="Gigabit Ethernet">
+                    <option value="10G Ethernet">
+                    <option value="Fiber">
+                    <option value="Wi-Fi">
+                    <option value="SFP">
+                    <option value="QSFP">
+                </datalist>
             </div>
 
             <div class="form-group">
                 <label for="description">Описание</label>
-                <textarea id="description" rows="3" placeholder="Краткое описание типа оборудования..."></textarea>
+                <textarea id="description"
+                          rows="3"
+                          maxlength="500"
+                          placeholder="Краткое описание типа оборудования, его особенностей и назначения..."></textarea>
+                <small class="form-hint">Максимум 500 символов</small>
             </div>
 
             <div class="action-buttons">
@@ -124,6 +180,17 @@
                 <button type="button" class="btn btn-secondary" onclick="closeModal()">Отмена</button>
             </div>
         </form>
+    </div>
+</div>
+
+<!-- Модальное окно просмотра деталей -->
+<div id="detailsModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>📋 Детали типа оборудования</h2>
+            <span class="modal-close" onclick="closeDetailsModal()">✖</span>
+        </div>
+        <div id="detailsModalContent"></div>
     </div>
 </div>
 
