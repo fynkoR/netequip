@@ -17,6 +17,10 @@ public class EquipmentType {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String typeName;
+
+    @Column(name = "snmp_object_id", unique = true)
+    private String snmpObjectId;
+
     private String manufacturer;
     private String model;
     private Integer defaultPortCount;

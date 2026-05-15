@@ -17,6 +17,8 @@ public class CreateAndUpdateEquipmentTypeDto {
     @Size(max = 50, message = "Название типа не должно превышать 50 символов")
     private String typeName;
 
+    private String snmpObjectId;
+
     @Size(max = 100, message = "Название производителя не должно превышать 100 символов")
     private String manufacturer;
 

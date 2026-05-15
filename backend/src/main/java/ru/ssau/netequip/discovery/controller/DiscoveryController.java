@@ -8,13 +8,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import ru.ssau.netequip.discovery.dto.ScanRequestDto;
-import ru.ssau.netequip.discovery.dto.ScanResultDto;
-import ru.ssau.netequip.discovery.dto.SnmpDeviceInfo;
-import ru.ssau.netequip.discovery.dto.SnmpIpInfo;
-import ru.ssau.netequip.discovery.dto.SnmpPortInfo;
-import ru.ssau.netequip.discovery.dto.SnmpSystemInfo;
+import ru.ssau.netequip.discovery.dto.*;
 import ru.ssau.netequip.discovery.service.CidrUtils;
+import ru.ssau.netequip.discovery.service.DiscoveryImportService;
 import ru.ssau.netequip.discovery.service.DiscoveryService;
 import ru.ssau.netequip.discovery.service.SnmpQueryService;
 
@@ -27,6 +23,7 @@ public class DiscoveryController {
 
     private final SnmpQueryService snmpQueryService;
     private final DiscoveryService discoveryService;
+    private final DiscoveryImportService discoveryImportService;
 
     @GetMapping("/ping")
     public String ping() {
@@ -47,6 +44,12 @@ public class DiscoveryController {
     @PostMapping("/scan")
     public ResponseEntity<ScanResultDto> scan(@RequestBody ScanRequestDto request) {
         ScanResultDto result = discoveryService.scan(request);
+        return ResponseEntity.ok(result);
+    }
+
+    @PostMapping("/import")
+    public ResponseEntity<ImportResultDto> importDevices(@RequestBody ImportRequestDto request) {
+        ImportResultDto result = discoveryImportService.importDevices(request);
         return ResponseEntity.ok(result);
     }
 

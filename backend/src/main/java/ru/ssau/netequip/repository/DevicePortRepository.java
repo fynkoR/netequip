@@ -32,4 +32,10 @@ public interface DevicePortRepository extends JpaRepository<DevicePort, Long> {
     List<DevicePort> findByConnectedToEquipment(Equipment equipment);
 
     List<DevicePort> findByConnectedToPort(DevicePort port);
+    List<DevicePort> findByEquipmentId(Long equipmentId);
+    void deleteByEquipmentId(Long equipmentId);
+    List<DevicePort> findByConnectedToEquipmentId(Long equipmentId);
+
+
+
 }

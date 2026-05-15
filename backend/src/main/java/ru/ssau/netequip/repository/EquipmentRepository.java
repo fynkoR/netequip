@@ -30,4 +30,6 @@ public interface EquipmentRepository extends JpaRepository<Equipment, Long> {
     int countByType(EquipmentType type);
 
     int countByStatus(StatusEquipment status);
+
+    Optional<Equipment> findByName(String name);
 }

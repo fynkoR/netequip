@@ -11,6 +11,9 @@ public class ResponseEquipmentTypeDto {
 
     private Long id;
     private String typeName;
+
+    private String snmpObjectId;
+
     private String manufacturer;
     private String model;
     private Integer defaultPortCount;

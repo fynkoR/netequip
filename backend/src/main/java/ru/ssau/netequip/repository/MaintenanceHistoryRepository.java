@@ -36,4 +36,6 @@ public interface MaintenanceHistoryRepository extends JpaRepository<MaintenanceH
     @Query("SELECT m FROM MaintenanceHistory m WHERE m.equipment = :equipment AND m.date >= :since ORDER BY m.date DESC")
     List<MaintenanceHistory> findRecentMaintenances(@Param("equipment") Equipment equipment,
                                                     @Param("since") LocalDateTime since);
+
+    void deleteByEquipmentId(Long equipmentId);
 }

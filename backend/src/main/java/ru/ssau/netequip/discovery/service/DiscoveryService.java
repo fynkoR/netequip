@@ -8,14 +8,12 @@ import ru.ssau.netequip.discovery.dto.ScanRequestDto;
 import ru.ssau.netequip.discovery.dto.ScanResultDto;
 import ru.ssau.netequip.discovery.dto.SnmpDeviceInfo;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import ru.ssau.netequip.discovery.dto.DiscoveredDeviceDto;
 
 @Service
 @Slf4j
@@ -23,6 +21,7 @@ import java.util.concurrent.TimeUnit;
 public class DiscoveryService {
 
     private final SnmpQueryService snmpQueryService;
+    private final TypeResolverService typeResolverService;
 
     /**
      * Размер пула параллельных потоков для сканирования.
@@ -70,11 +69,11 @@ public class DiscoveryService {
         // 3. Запускаем параллельное сканирование через executor service
         ExecutorService executor = Executors.newFixedThreadPool(threadPoolSize);
         try {
-            List<CompletableFuture<SnmpDeviceInfo>> futures = new ArrayList<>();
+            List<CompletableFuture<DiscoveredDeviceDto>> futures = new ArrayList<>();
 
             for (String ip : targetIps) {
                 final String communityForIp = resolveCommunity(communityTemplate, ip);
-                CompletableFuture<SnmpDeviceInfo> future = CompletableFuture.supplyAsync(
+                CompletableFuture<DiscoveredDeviceDto> future = CompletableFuture.supplyAsync(
                         () -> scanOne(ip, port, communityForIp),
                         executor
                 );
@@ -82,7 +81,7 @@ public class DiscoveryService {
             }
 
             // 4. Ждём результаты всех задач
-            List<SnmpDeviceInfo> discovered = futures.stream()
+            List<DiscoveredDeviceDto> discovered = futures.stream()
                     .map(CompletableFuture::join)
                     .filter(Objects::nonNull)
                     .toList();
@@ -114,12 +113,25 @@ public class DiscoveryService {
 
     /**
      * Опрашивает один IP. Возвращает null, если устройство не отвечает.
-     * Возвращаемый null будет отфильтрован при сборе результатов.
      */
-    private SnmpDeviceInfo scanOne(String ip, int port, String community) {
+    private DiscoveredDeviceDto scanOne(String ip, int port, String community) {
         try {
-            return snmpQueryService.queryFullDevice(ip, port, community)
-                    .orElse(null);
+            Optional<SnmpDeviceInfo> deviceOpt = snmpQueryService.queryFullDevice(ip, port, community);
+            if (deviceOpt.isEmpty()) {
+                return null;
+            }
+
+            SnmpDeviceInfo deviceInfo = deviceOpt.get();
+            TypeResolverService.ResolverResult typeResult =
+                    typeResolverService.resolve(deviceInfo.getSystem());
+
+            return DiscoveredDeviceDto.builder()
+                    .snmpData(deviceInfo)
+                    .suggestedTypeId(typeResult.type() != null ? typeResult.type().getId() : null)
+                    .suggestedTypeName(typeResult.type() != null ? typeResult.type().getTypeName() : null)
+                    .matchConfidence(typeResult.confidence())
+                    .build();
+
         } catch (Exception e) {
             log.warn("Unexpected error during SNMP query to {}: {}", ip, e.getMessage());
             return null;

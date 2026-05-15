@@ -18,4 +18,5 @@ public interface IpAddressRepository extends JpaRepository<IpAddress,Long> {
     boolean existsByIpAddress(String ipAddress);
     long countByEquipment(Equipment equipment);
     List<IpAddress> findBySubnetMask(String subnetMask);
+    void deleteByEquipmentId(Long equipmentId);
 }

@@ -33,5 +33,5 @@ public class ScanResultDto {
     /**
      * Найденные устройства.
      */
-    private List<SnmpDeviceInfo> discoveredDevices;
+    private List<DiscoveredDeviceDto> discoveredDevices;
 }

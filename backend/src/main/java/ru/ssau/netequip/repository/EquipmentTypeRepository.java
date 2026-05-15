@@ -13,4 +13,5 @@ public interface EquipmentTypeRepository extends JpaRepository<EquipmentType, Lo
     List<EquipmentType> findByManufacturer(String manufacturer);
     Optional<EquipmentType> findByManufacturerAndModel(String manufacturer, String model);
     boolean existsByTypeName(String typeName);
+    Optional<EquipmentType> findBySnmpObjectId(String snmpObjectId);
 }
