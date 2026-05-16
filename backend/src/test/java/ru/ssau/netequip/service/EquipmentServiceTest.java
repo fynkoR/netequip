@@ -19,6 +19,11 @@ import ru.ssau.netequip.mapper.EquipmentMapper;
 import ru.ssau.netequip.repository.EmployeeRepository;
 import ru.ssau.netequip.repository.EquipmentRepository;
 import ru.ssau.netequip.repository.EquipmentTypeRepository;
+import ru.ssau.netequip.entity.DevicePort;
+import ru.ssau.netequip.repository.DevicePortRepository;
+import ru.ssau.netequip.repository.IpAddressRepository;
+import ru.ssau.netequip.repository.MaintenanceHistoryRepository;
+import java.util.Collections;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -45,6 +50,15 @@ class EquipmentServiceTest {
 
     @InjectMocks
     private EquipmentService equipmentService;
+
+    @Mock
+    private DevicePortRepository devicePortRepository;
+
+    @Mock
+    private IpAddressRepository ipAddressRepository;
+
+    @Mock
+    private MaintenanceHistoryRepository maintenanceHistoryRepository;
 
     private EquipmentType createEquipmentType(Long id, String typeName) {
         EquipmentType type = new EquipmentType();
@@ -399,20 +413,64 @@ class EquipmentServiceTest {
     @Test
     void testDelete_Success() {
         Long equipmentId = 100L;
+        EquipmentType type = createEquipmentType(1L, "Switch");
+        Equipment equipment = createEquipment(equipmentId, "SW-01", type, null);
 
-        when(equipmentRepository.existsById(equipmentId)).thenReturn(true);
+        when(equipmentRepository.findById(equipmentId)).thenReturn(Optional.of(equipment));
+        when(devicePortRepository.findByConnectedToEquipmentId(equipmentId))
+                .thenReturn(Collections.emptyList());
 
         assertDoesNotThrow(() -> equipmentService.delete(equipmentId));
-        verify(equipmentRepository, times(1)).deleteById(equipmentId);
+
+        verify(devicePortRepository).findByConnectedToEquipmentId(equipmentId);
+        verify(maintenanceHistoryRepository).deleteByEquipmentId(equipmentId);
+        verify(ipAddressRepository).deleteByEquipmentId(equipmentId);
+        verify(devicePortRepository).deleteByEquipmentId(equipmentId);
+        verify(equipmentRepository).delete(equipment);
     }
 
     @Test
     void testDelete_NotFound_ShouldThrowException() {
         Long equipmentId = 999L;
 
-        when(equipmentRepository.existsById(equipmentId)).thenReturn(false);
+        when(equipmentRepository.findById(equipmentId)).thenReturn(Optional.empty());
 
-        assertThrows(NotFoundEquipmentException.class, () -> equipmentService.delete(equipmentId));
-        verify(equipmentRepository, never()).deleteById(any());
+        assertThrows(NotFoundEquipmentException.class,
+                () -> equipmentService.delete(equipmentId));
+
+        verify(equipmentRepository, never()).delete(any(Equipment.class));
+        verify(devicePortRepository, never()).deleteByEquipmentId(any());
+    }
+
+    @Test
+    void testDelete_BreaksIncomingConnections() {
+        Long equipmentId = 100L;
+        EquipmentType type = createEquipmentType(1L, "Switch");
+        Equipment equipment = createEquipment(equipmentId, "SW-01", type, null);
+
+        // Два порта чужих устройств, подключённых к удаляемому
+        DevicePort incoming1 = new DevicePort();
+        incoming1.setId(11L);
+        incoming1.setConnectedToEquipment(equipment);
+
+        DevicePort incoming2 = new DevicePort();
+        incoming2.setId(12L);
+        incoming2.setConnectedToEquipment(equipment);
+
+        when(equipmentRepository.findById(equipmentId)).thenReturn(Optional.of(equipment));
+        when(devicePortRepository.findByConnectedToEquipmentId(equipmentId))
+                .thenReturn(List.of(incoming1, incoming2));
+
+        equipmentService.delete(equipmentId);
+
+        // Связи разорваны в памяти
+        assertNull(incoming1.getConnectedToEquipment());
+        assertNull(incoming1.getConnectedToPort());
+        assertNull(incoming2.getConnectedToEquipment());
+        assertNull(incoming2.getConnectedToPort());
+
+        // И сохранены
+        verify(devicePortRepository).saveAll(List.of(incoming1, incoming2));
+        verify(equipmentRepository).delete(equipment);
     }
 }
