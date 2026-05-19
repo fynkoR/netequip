@@ -6,6 +6,10 @@ import ru.ssau.netequip.entity.Employee;
 import ru.ssau.netequip.entity.Equipment;
 import ru.ssau.netequip.entity.EquipmentType;
 import ru.ssau.netequip.enums.StatusEquipment;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -32,4 +36,16 @@ public interface EquipmentRepository extends JpaRepository<Equipment, Long> {
     int countByStatus(StatusEquipment status);
 
     Optional<Equipment> findByName(String name);
+
+    @Query("""
+    SELECT e FROM Equipment e
+    WHERE LOWER(COALESCE(e.name, '')) LIKE LOWER(CONCAT('%', :search, '%'))
+       OR LOWER(COALESCE(e.serialNumber, '')) LIKE LOWER(CONCAT('%', :search, '%'))
+       OR LOWER(COALESCE(e.macAddress, '')) LIKE LOWER(CONCAT('%', :search, '%'))
+       OR LOWER(COALESCE(e.ipAddress, '')) LIKE LOWER(CONCAT('%', :search, '%'))
+       OR LOWER(COALESCE(e.address, '')) LIKE LOWER(CONCAT('%', :search, '%'))
+       OR LOWER(COALESCE(e.type.typeName, '')) LIKE LOWER(CONCAT('%', :search, '%'))
+       OR LOWER(COALESCE(e.employee.fullName, '')) LIKE LOWER(CONCAT('%', :search, '%'))
+    """)
+    Page<Equipment> search(@Param("search") String search, Pageable pageable);
 }

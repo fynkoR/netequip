@@ -7,6 +7,8 @@ import org.springframework.stereotype.Repository;
 import ru.ssau.netequip.entity.DevicePort;
 import ru.ssau.netequip.entity.Equipment;
 import ru.ssau.netequip.enums.StatusPort;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Optional;
@@ -35,7 +37,12 @@ public interface DevicePortRepository extends JpaRepository<DevicePort, Long> {
     List<DevicePort> findByEquipmentId(Long equipmentId);
     void deleteByEquipmentId(Long equipmentId);
     List<DevicePort> findByConnectedToEquipmentId(Long equipmentId);
-
-
-
+    @Query("""
+    SELECT p FROM DevicePort p
+    WHERE LOWER(COALESCE(p.portType, '')) LIKE LOWER(CONCAT('%', :search, '%'))
+       OR LOWER(COALESCE(p.description, '')) LIKE LOWER(CONCAT('%', :search, '%'))
+       OR LOWER(COALESCE(p.speed, '')) LIKE LOWER(CONCAT('%', :search, '%'))
+       OR LOWER(COALESCE(p.equipment.name, '')) LIKE LOWER(CONCAT('%', :search, '%'))
+    """)
+    Page<DevicePort> search(@Param("search") String search, Pageable pageable);
 }

@@ -1,6 +1,8 @@
 package ru.ssau.netequip.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.ssau.netequip.dto.maintenanceHistory.CreateAndUpdateMaintenanceHistoryDTO;
@@ -85,6 +87,22 @@ public class MaintenanceHistoryService {
         return maintenanceHistories.stream()
                 .map(maintenanceHistoryMapper::toResponseDTO)
                 .collect(Collectors.toList());
+    }
+
+    public Page<ResponseMaintenanceHistoryDto> getPage(String search, Pageable pageable) {
+        log.info("Получение страницы обслуживаний: page={}, size={}, search='{}'",
+                pageable.getPageNumber(), pageable.getPageSize(), search);
+
+        Page<MaintenanceHistory> page;
+        if (search != null && !search.isBlank()) {
+            page = maintenanceHistoryRepository.search(search.trim(), pageable);
+        } else {
+            page = maintenanceHistoryRepository.findAll(pageable);
+        }
+
+        log.info("Найдено обслуживаний на странице: {} из {}",
+                page.getNumberOfElements(), page.getTotalElements());
+        return page.map(maintenanceHistoryMapper::toResponseDTO);
     }
 
     @Transactional

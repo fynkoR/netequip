@@ -5,6 +5,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import ru.ssau.netequip.dto.devicePort.CreateAndUpdateDevicePortDto;
@@ -149,11 +152,12 @@ class DevicePortControllerTest {
         dto2.setPortNumber(2);
         devicePortController.addDevicePort(dto2);
 
-        ResponseEntity<List<ResponseDevicePortDto>> response = devicePortController.getAllDevicePorts();
+        Pageable pageable = PageRequest.of(0, 20);
+        ResponseEntity<Page<ResponseDevicePortDto>> response = devicePortController.getAllDevicePorts(null, pageable);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertTrue(response.getBody().size() >= 2);
+        assertTrue(response.getBody().getTotalElements() >= 2);
     }
 
     @Test

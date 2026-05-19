@@ -7,6 +7,8 @@ import org.springframework.stereotype.Repository;
 import ru.ssau.netequip.entity.Employee;
 import ru.ssau.netequip.entity.Equipment;
 import ru.ssau.netequip.entity.MaintenanceHistory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -38,4 +40,13 @@ public interface MaintenanceHistoryRepository extends JpaRepository<MaintenanceH
                                                     @Param("since") LocalDateTime since);
 
     void deleteByEquipmentId(Long equipmentId);
+
+    @Query("""
+    SELECT m FROM MaintenanceHistory m
+    WHERE LOWER(COALESCE(m.type, '')) LIKE LOWER(CONCAT('%', :search, '%'))
+       OR LOWER(COALESCE(m.description, '')) LIKE LOWER(CONCAT('%', :search, '%'))
+       OR LOWER(COALESCE(m.equipment.name, '')) LIKE LOWER(CONCAT('%', :search, '%'))
+       OR LOWER(COALESCE(m.performedBy.fullName, '')) LIKE LOWER(CONCAT('%', :search, '%'))
+    """)
+    Page<MaintenanceHistory> search(@Param("search") String search, Pageable pageable);
 }

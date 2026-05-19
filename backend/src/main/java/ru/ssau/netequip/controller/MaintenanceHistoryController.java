@@ -13,6 +13,10 @@ import ru.ssau.netequip.dto.maintenanceHistory.ResponseMaintenanceHistoryDto;
 import ru.ssau.netequip.entity.User;
 import ru.ssau.netequip.service.CustomUserDetailsService;
 import ru.ssau.netequip.service.MaintenanceHistoryService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 
 import java.util.List;
 
@@ -49,9 +53,13 @@ public class MaintenanceHistoryController {
         return ResponseEntity.ok(history);
     }
     @GetMapping
-    public ResponseEntity<List<ResponseMaintenanceHistoryDto>> getListMaintenanceHistory(){
-        log.info("Get list maintenance history");
-        List<ResponseMaintenanceHistoryDto> history = maintenanceHistoryService.getAll();
+    public ResponseEntity<Page<ResponseMaintenanceHistoryDto>> getListMaintenanceHistory(
+            @RequestParam(required = false) String search,
+            @PageableDefault(size = 20, sort = "id", direction = Sort.Direction.ASC) Pageable pageable
+    ) {
+        log.info("Get list maintenance history page={}, size={}, search='{}'",
+                pageable.getPageNumber(), pageable.getPageSize(), search);
+        Page<ResponseMaintenanceHistoryDto> history = maintenanceHistoryService.getPage(search, pageable);
         return ResponseEntity.ok(history);
     }
     @PutMapping("/{id}")

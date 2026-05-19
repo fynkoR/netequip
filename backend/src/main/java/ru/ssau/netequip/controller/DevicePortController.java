@@ -8,6 +8,11 @@ import org.springframework.web.bind.annotation.*;
 import ru.ssau.netequip.dto.devicePort.CreateAndUpdateDevicePortDto;
 import ru.ssau.netequip.dto.devicePort.ResponseDevicePortDto;
 import ru.ssau.netequip.service.DevicePortService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
+
 
 import java.util.List;
 
@@ -34,9 +39,13 @@ public class DevicePortController {
        return ResponseEntity.ok(port);
     }
     @GetMapping
-    public ResponseEntity<List<ResponseDevicePortDto>> getAllDevicePorts() {
-        log.info("Get all device ports");
-        List<ResponseDevicePortDto> ports = devicePortService.getAll();
+    public ResponseEntity<Page<ResponseDevicePortDto>> getAllDevicePorts(
+            @RequestParam(required = false) String search,
+            @PageableDefault(size = 20, sort = "id", direction = Sort.Direction.ASC) Pageable pageable
+    ) {
+        log.info("Get all device ports page={}, size={}, search='{}'",
+                pageable.getPageNumber(), pageable.getPageSize(), search);
+        Page<ResponseDevicePortDto> ports = devicePortService.getPage(search, pageable);
         return ResponseEntity.ok(ports);
     }
     @PutMapping("/{id}")

@@ -5,6 +5,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -224,18 +227,20 @@ class MaintenanceHistoryControllerTest {
         dto2.setType("REPAIR");
         maintenanceHistoryController.addMaintenanceHistory(dto2);
 
-        ResponseEntity<List<ResponseMaintenanceHistoryDto>> response =
-                maintenanceHistoryController.getListMaintenanceHistory();
+        Pageable pageable = PageRequest.of(0, 20);
+        ResponseEntity<Page<ResponseMaintenanceHistoryDto>> response =
+                maintenanceHistoryController.getListMaintenanceHistory(null, pageable);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertTrue(response.getBody().size() >= 2);
+        assertTrue(response.getBody().getTotalElements() >= 2);
     }
 
     @Test
     void testGetListMaintenanceHistory_Empty() {
-        ResponseEntity<List<ResponseMaintenanceHistoryDto>> response =
-                maintenanceHistoryController.getListMaintenanceHistory();
+        Pageable pageable = PageRequest.of(0, 20);
+        ResponseEntity<Page<ResponseMaintenanceHistoryDto>> response =
+                maintenanceHistoryController.getListMaintenanceHistory(null, pageable);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());

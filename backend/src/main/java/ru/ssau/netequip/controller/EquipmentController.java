@@ -9,6 +9,10 @@ import ru.ssau.netequip.dto.equipment.CreateEquipmentDto;
 import ru.ssau.netequip.dto.equipment.ResponseEquipmentDto;
 import ru.ssau.netequip.dto.equipment.UpdateEquipmentDto;
 import ru.ssau.netequip.service.EquipmentService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 
 import java.util.List;
 
@@ -36,9 +40,13 @@ public class EquipmentController {
         return ResponseEntity.ok(equipment);
     }
     @GetMapping
-    public ResponseEntity<List<ResponseEquipmentDto>> getAllEquipment() {
-        log.info("Get all equipment");
-        List<ResponseEquipmentDto> equipments = equipmentService.getAll();
+    public ResponseEntity<Page<ResponseEquipmentDto>> getAllEquipment(
+            @RequestParam(required = false) String search,
+            @PageableDefault(size = 20, sort = "id", direction = Sort.Direction.ASC) Pageable pageable
+    ) {
+        log.info("Get all equipment page={}, size={}, search='{}'",
+                pageable.getPageNumber(), pageable.getPageSize(), search);
+        Page<ResponseEquipmentDto> equipments = equipmentService.getPage(search, pageable);
         return ResponseEntity.ok(equipments);
     }
     @PutMapping("/{id}")

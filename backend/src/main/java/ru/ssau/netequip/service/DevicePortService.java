@@ -14,6 +14,9 @@ import ru.ssau.netequip.exception.equipment.NotFoundEquipmentException;
 import ru.ssau.netequip.mapper.DevicePortMapper;
 import ru.ssau.netequip.repository.DevicePortRepository;
 import ru.ssau.netequip.repository.EquipmentRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -74,6 +77,22 @@ public class DevicePortService {
         return devicePorts.stream()
                 .map(devicePortMapper::toResponseDTO)
                 .collect(Collectors.toList());
+    }
+
+    public Page<ResponseDevicePortDto> getPage(String search, Pageable pageable) {
+        log.info("Получение страницы портов: page={}, size={}, search='{}'",
+                pageable.getPageNumber(), pageable.getPageSize(), search);
+
+        Page<DevicePort> page;
+        if (search != null && !search.isBlank()) {
+            page = devicePortRepository.search(search.trim(), pageable);
+        } else {
+            page = devicePortRepository.findAll(pageable);
+        }
+
+        log.info("Найдено портов на странице: {} из {}",
+                page.getNumberOfElements(), page.getTotalElements());
+        return page.map(devicePortMapper::toResponseDTO);
     }
 
     @Transactional

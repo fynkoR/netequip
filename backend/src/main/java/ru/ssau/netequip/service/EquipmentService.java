@@ -16,6 +16,8 @@ import ru.ssau.netequip.exception.equipment.NotFoundEquipmentException;
 import ru.ssau.netequip.exception.equipmentType.NotFoundEquipmentTypeException;
 import ru.ssau.netequip.mapper.EquipmentMapper;
 import ru.ssau.netequip.repository.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -92,6 +94,23 @@ public class EquipmentService {
                 .map(equipmentMapper::toResponseDTO)
                 .collect(Collectors.toList());
     }
+
+    public Page<ResponseEquipmentDto> getPage(String search, Pageable pageable) {
+        log.info("Получение страницы оборудования: page={}, size={}, search='{}'",
+                pageable.getPageNumber(), pageable.getPageSize(), search);
+
+        Page<Equipment> page;
+        if (search != null && !search.isBlank()) {
+            page = equipmentRepository.search(search.trim(), pageable);
+        } else {
+            page = equipmentRepository.findAll(pageable);
+        }
+
+        log.info("Найдено оборудования на странице: {} из {}",
+                page.getNumberOfElements(), page.getTotalElements());
+        return page.map(equipmentMapper::toResponseDTO);
+    }
+
     @Transactional
     public ResponseEquipmentDto update(Long id, UpdateEquipmentDto dto) {
         log.info("Обновление оборудование с id: {}",id);
