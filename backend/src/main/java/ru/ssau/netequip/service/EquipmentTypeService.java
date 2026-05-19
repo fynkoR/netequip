@@ -1,6 +1,8 @@
 package ru.ssau.netequip.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.ssau.netequip.dto.equipmentType.CreateAndUpdateEquipmentTypeDto;
@@ -54,6 +56,23 @@ public class EquipmentTypeService {
                 .map(equipmentTypeMapper::toResponseDTO)
                 .collect(Collectors.toList());
     }
+
+    public Page<ResponseEquipmentTypeDto> getPage(String search, Pageable pageable) {
+        log.info("Получение страницы типов: page={}, size={}, search='{}'",
+                pageable.getPageNumber(), pageable.getPageSize(), search);
+
+        Page<EquipmentType> page;
+        if (search != null && !search.isBlank()) {
+            page = equipmentTypeRepository.search(search.trim(), pageable);
+        } else {
+            page = equipmentTypeRepository.findAll(pageable);
+        }
+
+        log.info("Найдено типов на странице: {} из {}",
+                page.getNumberOfElements(), page.getTotalElements());
+        return page.map(equipmentTypeMapper::toResponseDTO);
+    }
+
     @Transactional
     public ResponseEquipmentTypeDto update(Long id, CreateAndUpdateEquipmentTypeDto dto){
         log.info("Обновление типа сотрудника с id: {}", id);

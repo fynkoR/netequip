@@ -12,6 +12,8 @@ import ru.ssau.netequip.exception.employee.DuplicateEmployeeEmailException;
 import ru.ssau.netequip.exception.employee.NotFoundEmployeeException;
 import ru.ssau.netequip.mapper.EmployeeMapper;
 import ru.ssau.netequip.repository.EmployeeRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -59,6 +61,23 @@ public class EmployeeService {
                 .map(employeeMapper::toResponseDTO)
                 .collect(Collectors.toList());
     }
+
+    public Page<ResponseEmployeeDto> getPage(String search, Pageable pageable) {
+        log.info("Получение страницы сотрудников: page={}, size={}, search='{}'",
+                pageable.getPageNumber(), pageable.getPageSize(), search);
+
+        Page<Employee> page;
+        if (search != null && !search.isBlank()) {
+            page = employeeRepository.search(search.trim(), pageable);
+        } else {
+            page = employeeRepository.findAll(pageable);
+        }
+
+        log.info("Найдено сотрудников на странице: {} из {}",
+                page.getNumberOfElements(), page.getTotalElements());
+        return page.map(employeeMapper::toResponseDTO);
+    }
+
     @Transactional
     public ResponseEmployeeDto update(Long id, UpdateEmployeeDto dto) {
         log.info("Обновление сотрудника с id: {}", id);

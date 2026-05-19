@@ -10,6 +10,10 @@ import ru.ssau.netequip.dto.employee.ResponseEmployeeDto;
 import ru.ssau.netequip.dto.employee.UpdateEmployeeDto;
 import ru.ssau.netequip.entity.Employee;
 import ru.ssau.netequip.service.EmployeeService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 
 import java.util.List;
 
@@ -35,9 +39,13 @@ public class EmployeeController {
         return ResponseEntity.ok(employee);
     }
     @GetMapping
-    public ResponseEntity<List<ResponseEmployeeDto>> getEmployees() {
-        log.info("Get employees");
-        List<ResponseEmployeeDto> employees = employeeService.getAll();
+    public ResponseEntity<Page<ResponseEmployeeDto>> getEmployees(
+            @RequestParam(required = false) String search,
+            @PageableDefault(size = 20, sort = "id", direction = Sort.Direction.ASC) Pageable pageable
+    ) {
+        log.info("Get employees page={}, size={}, search='{}'",
+                pageable.getPageNumber(), pageable.getPageSize(), search);
+        Page<ResponseEmployeeDto> employees = employeeService.getPage(search, pageable);
         return ResponseEntity.ok(employees);
     }
     @PutMapping("/{id}")

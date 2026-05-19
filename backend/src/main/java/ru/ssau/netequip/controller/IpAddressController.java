@@ -9,6 +9,10 @@ import ru.ssau.netequip.dto.ipAddress.CreateAndUpdateIpAddress;
 import ru.ssau.netequip.dto.ipAddress.ResponseIpAddressDto;
 import ru.ssau.netequip.entity.IpAddress;
 import ru.ssau.netequip.service.IpAddressService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 
 import java.util.List;
 
@@ -36,9 +40,13 @@ public class IpAddressController {
         return ResponseEntity.ok(ip);
     }
     @GetMapping
-    public ResponseEntity<List<ResponseIpAddressDto>> getAllIpAddress() {
-        log.info("Get all ip address");
-        List<ResponseIpAddressDto> ip = ipAddressService.getAll();
+    public ResponseEntity<Page<ResponseIpAddressDto>> getAllIpAddress(
+            @RequestParam(required = false) String search,
+            @PageableDefault(size = 20, sort = "id", direction = Sort.Direction.ASC) Pageable pageable
+    ) {
+        log.info("Get all ip address page={}, size={}, search='{}'",
+                pageable.getPageNumber(), pageable.getPageSize(), search);
+        Page<ResponseIpAddressDto> ip = ipAddressService.getPage(search, pageable);
         return ResponseEntity.ok(ip);
     }
     @PutMapping("/{id}")

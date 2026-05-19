@@ -5,6 +5,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import ru.ssau.netequip.dto.equipmentType.CreateAndUpdateEquipmentTypeDto;
@@ -105,11 +108,12 @@ class EquipmentTypeControllerTest {
         dto2.setTypeName("Type2");
         equipmentTypeController.addEquipmentType(dto2);
 
-        ResponseEntity<List<ResponseEquipmentTypeDto>> response = equipmentTypeController.getAllEquipmentTypes();
+        Pageable pageable = PageRequest.of(0, 20);
+        ResponseEntity<Page<ResponseEquipmentTypeDto>> response = equipmentTypeController.getAllEquipmentTypes(null, pageable);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertTrue(response.getBody().size() >= 2);
+        assertTrue(response.getBody().getTotalElements() >= 2);
     }
 
     @Test
@@ -117,7 +121,8 @@ class EquipmentTypeControllerTest {
         // Убеждаемся, что БД пустая
         equipmentTypeRepository.deleteAllInBatch();
 
-        ResponseEntity<List<ResponseEquipmentTypeDto>> response = equipmentTypeController.getAllEquipmentTypes();
+        Pageable pageable = PageRequest.of(0, 20);
+        ResponseEntity<Page<ResponseEquipmentTypeDto>> response = equipmentTypeController.getAllEquipmentTypes(null, pageable);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -243,5 +248,72 @@ class EquipmentTypeControllerTest {
             // Ожидаемое исключение
             assertTrue(true);
         }
+    }
+
+    @Test
+    void testSearchEquipmentTypes_FindsByTypeName() {
+        CreateAndUpdateEquipmentTypeDto dto1 = new CreateAndUpdateEquipmentTypeDto();
+        dto1.setTypeName("Cisco Switch");
+        equipmentTypeController.addEquipmentType(dto1);
+
+        CreateAndUpdateEquipmentTypeDto dto2 = new CreateAndUpdateEquipmentTypeDto();
+        dto2.setTypeName("Juniper Router");
+        equipmentTypeController.addEquipmentType(dto2);
+
+        Pageable pageable = PageRequest.of(0, 20);
+        ResponseEntity<Page<ResponseEquipmentTypeDto>> response =
+                equipmentTypeController.getAllEquipmentTypes("cisco", pageable);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(1, response.getBody().getTotalElements());
+        assertEquals("Cisco Switch", response.getBody().getContent().get(0).getTypeName());
+    }
+
+    @Test
+    void testSearchEquipmentTypes_CaseInsensitive() {
+        CreateAndUpdateEquipmentTypeDto dto = new CreateAndUpdateEquipmentTypeDto();
+        dto.setTypeName("Cisco Switch");
+        equipmentTypeController.addEquipmentType(dto);
+
+        Pageable pageable = PageRequest.of(0, 20);
+
+        // ищем в верхнем регистре — должен найти
+        ResponseEntity<Page<ResponseEquipmentTypeDto>> upper =
+                equipmentTypeController.getAllEquipmentTypes("CISCO", pageable);
+        assertEquals(1, upper.getBody().getTotalElements());
+
+        // в нижнем — тоже
+        ResponseEntity<Page<ResponseEquipmentTypeDto>> lower =
+                equipmentTypeController.getAllEquipmentTypes("cisco", pageable);
+        assertEquals(1, lower.getBody().getTotalElements());
+    }
+
+    @Test
+    void testSearchEquipmentTypes_FindsByManufacturer() {
+        CreateAndUpdateEquipmentTypeDto dto = new CreateAndUpdateEquipmentTypeDto();
+        dto.setTypeName("Some Switch");
+        dto.setManufacturer("Cisco");
+        equipmentTypeController.addEquipmentType(dto);
+
+        Pageable pageable = PageRequest.of(0, 20);
+        ResponseEntity<Page<ResponseEquipmentTypeDto>> response =
+                equipmentTypeController.getAllEquipmentTypes("cisco", pageable);
+
+        assertEquals(1, response.getBody().getTotalElements());
+    }
+
+    @Test
+    void testSearchEquipmentTypes_EmptyResult() {
+        CreateAndUpdateEquipmentTypeDto dto = new CreateAndUpdateEquipmentTypeDto();
+        dto.setTypeName("Cisco");
+        equipmentTypeController.addEquipmentType(dto);
+
+        Pageable pageable = PageRequest.of(0, 20);
+        ResponseEntity<Page<ResponseEquipmentTypeDto>> response =
+                equipmentTypeController.getAllEquipmentTypes("nonexistent", pageable);
+
+        assertEquals(0, response.getBody().getTotalElements());
+        assertTrue(response.getBody().isEmpty());
     }
 }

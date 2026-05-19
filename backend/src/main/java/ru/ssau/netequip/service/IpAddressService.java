@@ -14,6 +14,8 @@ import ru.ssau.netequip.exception.ipAddress.PrimaryIpAddressConflictException;
 import ru.ssau.netequip.mapper.IpAddressMapper;
 import ru.ssau.netequip.repository.EquipmentRepository;
 import ru.ssau.netequip.repository.IpAddressRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -73,6 +75,22 @@ public class IpAddressService {
         return ipAddressList.stream()
                 .map(ipAddressMapper::toResponseDTO)
                 .collect(Collectors.toList());
+    }
+
+    public Page<ResponseIpAddressDto> getPage(String search, Pageable pageable) {
+        log.info("Получение страницы ip-address: page={}, size={}, search='{}'",
+                pageable.getPageNumber(), pageable.getPageSize(), search);
+
+        Page<IpAddress> page;
+        if (search != null && !search.isBlank()) {
+            page = ipAddressRepository.search(search.trim(), pageable);
+        } else {
+            page = ipAddressRepository.findAll(pageable);
+        }
+
+        log.info("Найдено ip-address на странице: {} из {}",
+                page.getNumberOfElements(), page.getTotalElements());
+        return page.map(ipAddressMapper::toResponseDTO);
     }
 
     @Transactional
