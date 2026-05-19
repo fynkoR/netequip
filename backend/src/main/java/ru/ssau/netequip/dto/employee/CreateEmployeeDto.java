@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import ru.ssau.netequip.enums.Position;
+import ru.ssau.netequip.enums.UserRole;
 
 @Data
 @AllArgsConstructor
@@ -18,7 +18,7 @@ public class CreateEmployeeDto {
     private String fullName;
 
     @NotNull(message = "Должность обязательна")
-    private Position position;
+    private UserRole position;
 
     @Email(message = "Некорректный email")
     @Size(max = 100, message = "Email не должен превышать 100 символов")

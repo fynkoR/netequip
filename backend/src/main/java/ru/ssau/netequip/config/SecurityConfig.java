@@ -57,47 +57,59 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-//                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider())
                 .authorizeHttpRequests(auth -> auth
-                        // Статические файлы фронта — без авторизации
+                        // ===== Публичное =====
                         .requestMatchers("/", "/index.html", "/*.js", "/*.css", "/*.ico",
                                 "/assets/**", "/media/**").permitAll()
-                        // Регистрация и аутентификация — без входа
                         .requestMatchers("/users/register").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/users").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/users/**").hasRole("ADMIN")
-                        .requestMatchers("/auth/login").permitAll()
-                        .requestMatchers("/auth/refresh").permitAll()
-                        // Swagger UI
+                        .requestMatchers("/auth/login", "/auth/refresh").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
 
-                        .requestMatchers(HttpMethod.POST, "/employees/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/employees/**").hasRole("ADMIN")
+                        // ===== Управление пользователями — только ADMIN =====
+                        .requestMatchers(HttpMethod.GET,    "/users").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT,    "/users/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/users/**").hasRole("ADMIN")
+
+                        // ===== Сотрудники — справочник, ведёт только ADMIN =====
+                        .requestMatchers(HttpMethod.POST,   "/employees/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT,    "/employees/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/employees/**").hasRole("ADMIN")
 
-                        .requestMatchers(HttpMethod.POST, "/types/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/types/**").hasRole("ADMIN")
+                        // ===== Типы оборудования — только ADMIN =====
+                        .requestMatchers(HttpMethod.POST,   "/types/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT,    "/types/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/types/**").hasRole("ADMIN")
 
-                        .requestMatchers(HttpMethod.POST, "/equipments/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/equipments/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/equipments/**").hasRole("ADMIN")
+                        // ===== Оборудование — write для ENGINEER и ADMIN =====
+                        .requestMatchers(HttpMethod.POST,   "/equipments/**").hasAnyRole("ENGINEER", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT,    "/equipments/**").hasAnyRole("ENGINEER", "ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/equipments/**").hasAnyRole("ENGINEER", "ADMIN")
 
-                        .requestMatchers(HttpMethod.POST, "/ip-addresses/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/ip-addresses/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/ip-addresses/**").hasRole("ADMIN")
+                        // ===== Порты — write для ENGINEER и ADMIN =====
+                        .requestMatchers(HttpMethod.POST,   "/ports/**").hasAnyRole("ENGINEER", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT,    "/ports/**").hasAnyRole("ENGINEER", "ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/ports/**").hasAnyRole("ENGINEER", "ADMIN")
 
-                        // Порты — DELETE только ADMIN, POST/PUT доступны всем (соединения)
-                        .requestMatchers(HttpMethod.DELETE, "/ports/**").hasRole("ADMIN")
+                        // ===== IP-адреса — write для ENGINEER и ADMIN =====
+                        .requestMatchers(HttpMethod.POST,   "/ip-addresses/**").hasAnyRole("ENGINEER", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT,    "/ip-addresses/**").hasAnyRole("ENGINEER", "ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/ip-addresses/**").hasAnyRole("ENGINEER", "ADMIN")
 
-                        // История обслуживания — DELETE только ADMIN
-                        .requestMatchers(HttpMethod.DELETE, "/histoires/**").hasRole("ADMIN")
+                        // ===== История обслуживания =====
+                        // TECHNIC, ENGINEER, ADMIN могут создавать и редактировать ТО
+                        .requestMatchers(HttpMethod.POST,   "/histoires/**").hasAnyRole("TECHNIC", "ENGINEER", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT,    "/histoires/**").hasAnyRole("TECHNIC", "ENGINEER", "ADMIN")
+                        // Удалять записи ТО — только ENGINEER и ADMIN
+                        .requestMatchers(HttpMethod.DELETE, "/histoires/**").hasAnyRole("ENGINEER", "ADMIN")
 
-                        // Все остальные — для авторизованных пользователей
+                        // ===== Сканирование сети — ENGINEER и ADMIN =====
+                        .requestMatchers("/discovery/**").hasAnyRole("ENGINEER", "ADMIN")
+
+                        // Всё остальное — для авторизованных (это в основном GET-запросы)
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);

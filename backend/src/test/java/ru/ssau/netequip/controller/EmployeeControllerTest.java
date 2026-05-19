@@ -10,8 +10,7 @@ import org.springframework.http.ResponseEntity;
 import ru.ssau.netequip.dto.employee.CreateEmployeeDto;
 import ru.ssau.netequip.dto.employee.ResponseEmployeeDto;
 import ru.ssau.netequip.dto.employee.UpdateEmployeeDto;
-import ru.ssau.netequip.entity.Employee;
-import ru.ssau.netequip.enums.Position;
+import ru.ssau.netequip.enums.UserRole;
 import ru.ssau.netequip.repository.EmployeeRepository;
 import ru.ssau.netequip.repository.EquipmentRepository;
 
@@ -49,7 +48,7 @@ class EmployeeControllerTest {
     void testCreateEmployee_Success() {
         CreateEmployeeDto dto = new CreateEmployeeDto();
         dto.setFullName("Тестов Тест Тестович");
-        dto.setPosition(Position.ENGINEER);
+        dto.setPosition(UserRole.ENGINEER);
         dto.setEmail("test" + System.currentTimeMillis() + "@ssau.ru"); // Уникальный email
 
         ResponseEntity<ResponseEmployeeDto> response = employeeController.createEmployee(dto);
@@ -67,14 +66,14 @@ class EmployeeControllerTest {
         String email = "duplicate@ssau.ru";
         CreateEmployeeDto dto1 = new CreateEmployeeDto();
         dto1.setFullName("Первый Сотрудник");
-        dto1.setPosition(Position.ENGINEER);
+        dto1.setPosition(UserRole.ENGINEER);
         dto1.setEmail(email);
         employeeController.createEmployee(dto1);
 
         // Пытаемся создать второго с тем же email
         CreateEmployeeDto dto2 = new CreateEmployeeDto();
         dto2.setFullName("Второй Сотрудник");
-        dto2.setPosition(Position.ADMIN);
+        dto2.setPosition(UserRole.ADMIN);
         dto2.setEmail(email);
 
         assertThrows(Exception.class, () -> employeeController.createEmployee(dto2));
@@ -85,7 +84,7 @@ class EmployeeControllerTest {
         // Сначала создаем сотрудника
         CreateEmployeeDto createDto = new CreateEmployeeDto();
         createDto.setFullName("Тестовый Сотрудник");
-        createDto.setPosition(Position.ENGINEER);
+        createDto.setPosition(UserRole.ENGINEER);
         createDto.setEmail("gettest" + System.currentTimeMillis() + "@ssau.ru");
         ResponseEntity<ResponseEmployeeDto> createResponse = employeeController.createEmployee(createDto);
         Long employeeId = createResponse.getBody().getId();
@@ -109,13 +108,13 @@ class EmployeeControllerTest {
         // Создаем несколько сотрудников
         CreateEmployeeDto dto1 = new CreateEmployeeDto();
         dto1.setFullName("Сотрудник 1");
-        dto1.setPosition(Position.ENGINEER);
+        dto1.setPosition(UserRole.ENGINEER);
         dto1.setEmail("emp1" + System.currentTimeMillis() + "@ssau.ru");
         employeeController.createEmployee(dto1);
 
         CreateEmployeeDto dto2 = new CreateEmployeeDto();
         dto2.setFullName("Сотрудник 2");
-        dto2.setPosition(Position.ADMIN);
+        dto2.setPosition(UserRole.ADMIN);
         dto2.setEmail("emp2" + System.currentTimeMillis() + "@ssau.ru");
         employeeController.createEmployee(dto2);
 
@@ -132,7 +131,7 @@ class EmployeeControllerTest {
         String originalEmail = "update" + System.currentTimeMillis() + "@ssau.ru";
         CreateEmployeeDto createDto = new CreateEmployeeDto();
         createDto.setFullName("Старое Имя");
-        createDto.setPosition(Position.ENGINEER);
+        createDto.setPosition(UserRole.ENGINEER);
         createDto.setEmail(originalEmail);
         ResponseEntity<ResponseEmployeeDto> createResponse = employeeController.createEmployee(createDto);
         Long employeeId = createResponse.getBody().getId();
@@ -140,7 +139,7 @@ class EmployeeControllerTest {
         // Обновляем сотрудника
         UpdateEmployeeDto updateDto = new UpdateEmployeeDto();
         updateDto.setFullName("Новое Имя");
-        updateDto.setPosition(Position.ADMIN);
+        updateDto.setPosition(UserRole.ADMIN);
         updateDto.setEmail(originalEmail); // Тот же email (не меняем)
 
         ResponseEntity<ResponseEmployeeDto> response = employeeController.updateEmployee(employeeId, updateDto);
@@ -148,7 +147,7 @@ class EmployeeControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals("Новое Имя", response.getBody().getFullName());
-        assertEquals(Position.ADMIN.name(), response.getBody().getPosition());
+        assertEquals(UserRole.ADMIN.name(), response.getBody().getPosition());
     }
 
     @Test
@@ -157,7 +156,7 @@ class EmployeeControllerTest {
         String email1 = "first@ssau.ru";
         CreateEmployeeDto dto1 = new CreateEmployeeDto();
         dto1.setFullName("Первый");
-        dto1.setPosition(Position.ENGINEER);
+        dto1.setPosition(UserRole.ENGINEER);
         dto1.setEmail(email1);
         employeeController.createEmployee(dto1);
 
@@ -165,7 +164,7 @@ class EmployeeControllerTest {
         String email2 = "second@ssau.ru";
         CreateEmployeeDto dto2 = new CreateEmployeeDto();
         dto2.setFullName("Второй");
-        dto2.setPosition(Position.ENGINEER);
+        dto2.setPosition(UserRole.ENGINEER);
         dto2.setEmail(email2);
         ResponseEntity<ResponseEmployeeDto> createResponse = employeeController.createEmployee(dto2);
         Long secondId = createResponse.getBody().getId();
@@ -173,7 +172,7 @@ class EmployeeControllerTest {
         // Пытаемся обновить второго сотрудника, меняя email на email первого
         UpdateEmployeeDto updateDto = new UpdateEmployeeDto();
         updateDto.setFullName("Второй Обновленный");
-        updateDto.setPosition(Position.ADMIN);
+        updateDto.setPosition(UserRole.ADMIN);
         updateDto.setEmail(email1); // Email первого сотрудника
 
         assertThrows(Exception.class, () -> employeeController.updateEmployee(secondId, updateDto));
@@ -184,7 +183,7 @@ class EmployeeControllerTest {
         // Создаем сотрудника
         CreateEmployeeDto createDto = new CreateEmployeeDto();
         createDto.setFullName("Удаляемый Сотрудник");
-        createDto.setPosition(Position.ENGINEER);
+        createDto.setPosition(UserRole.ENGINEER);
         createDto.setEmail("delete" + System.currentTimeMillis() + "@ssau.ru");
         ResponseEntity<ResponseEmployeeDto> createResponse = employeeController.createEmployee(createDto);
         Long employeeId = createResponse.getBody().getId();

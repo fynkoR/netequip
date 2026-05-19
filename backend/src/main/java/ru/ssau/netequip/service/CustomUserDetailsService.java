@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.ssau.netequip.dto.user.UserDto;
 import ru.ssau.netequip.entity.Employee;
 import ru.ssau.netequip.entity.User;
-import ru.ssau.netequip.enums.Role;
+import ru.ssau.netequip.enums.UserRole;
 import ru.ssau.netequip.exception.employee.NotFoundEmployeeException;
 import ru.ssau.netequip.repository.EmployeeRepository;
 import ru.ssau.netequip.repository.UserRepository;
@@ -64,9 +64,9 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         // Назначение роли
         if ("admin".equalsIgnoreCase(dto.getUsername())) {
-            user.setRole(Role.ADMIN);
+            user.setRole(UserRole.ADMIN);
         } else {
-            user.setRole(Role.USER);
+            user.setRole(UserRole.VIEWER);
         }
 
         // Привязка к сотруднику, если указан employeeId
@@ -110,28 +110,68 @@ public class CustomUserDetailsService implements UserDetailsService {
                     UserDto dto = new UserDto();
                     dto.setId(user.getId());
                     dto.setUsername(user.getUsername());
-                    dto.setEmployeeId(user.getEmployee() != null ? user.getEmployee().getId() : null);
+                    dto.setRole(user.getRole() != null ? user.getRole().name() : null);
+                    if (user.getEmployee() != null) {
+                        dto.setEmployeeId(user.getEmployee().getId());
+                        dto.setEmployeeFullName(user.getEmployee().getFullName());
+                    }
                     return dto;
                 }).collect(Collectors.toList());
     }
 
     @Transactional
-    public UserDto updateUser(Long id, UserDto dto){
+    public UserDto updateUser(Long id, UserDto dto) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new UsernameNotFoundException("Пользователь не найден с таким id: " + id));
-        if(dto.getEmployeeId() != null){
+                .orElseThrow(() -> new UsernameNotFoundException(
+                        "Пользователь не найден с таким id: " + id));
+
+        // Привязка сотрудника
+        if (dto.getEmployeeId() != null) {
             Employee employee = employeeRepository.findById(dto.getEmployeeId())
                     .orElseThrow(() -> new NotFoundEmployeeException(dto.getEmployeeId()));
             user.setEmployee(employee);
-        }else{
+        } else {
             user.setEmployee(null);
         }
+
+        // Смена роли (если передана)
+        if (dto.getRole() != null && !dto.getRole().isBlank()) {
+            try {
+                user.setRole(UserRole.valueOf(dto.getRole()));
+            } catch (IllegalArgumentException e) {
+                throw new RuntimeException("Недопустимая роль: " + dto.getRole());
+            }
+        }
+
         User saved = userRepository.save(user);
 
         UserDto response = new UserDto();
         response.setId(saved.getId());
         response.setUsername(saved.getUsername());
-        response.setEmployeeId(saved.getEmployee() != null ? saved.getEmployee().getId() : null);
+        response.setRole(saved.getRole() != null ? saved.getRole().name() : null);
+        if (saved.getEmployee() != null) {
+            response.setEmployeeId(saved.getEmployee().getId());
+            response.setEmployeeFullName(saved.getEmployee().getFullName());
+        }
         return response;
+    }
+
+    @Transactional
+    public void deleteUser(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new UsernameNotFoundException(
+                        "Пользователь не найден с таким id: " + id));
+
+        // Защита от удаления последнего админа
+        if (user.getRole() == UserRole.ADMIN) {
+            long adminCount = userRepository.countByRole(UserRole.ADMIN);
+            if (adminCount <= 1) {
+                throw new RuntimeException(
+                        "Нельзя удалить последнего администратора в системе");
+            }
+        }
+
+        userRepository.delete(user);
+        log.info("Пользователь удалён: id={}, username={}", id, user.getUsername());
     }
 }

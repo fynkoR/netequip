@@ -9,7 +9,7 @@ import ru.ssau.netequip.dto.employee.CreateEmployeeDto;
 import ru.ssau.netequip.dto.employee.ResponseEmployeeDto;
 import ru.ssau.netequip.dto.employee.UpdateEmployeeDto;
 import ru.ssau.netequip.entity.Employee;
-import ru.ssau.netequip.enums.Position;
+import ru.ssau.netequip.enums.UserRole;
 import ru.ssau.netequip.mapper.EmployeeMapper;
 import ru.ssau.netequip.repository.EmployeeRepository;
 import static org.mockito.ArgumentMatchers.any;
@@ -38,13 +38,13 @@ class EmployeeServiceTest {
         Employee emp1 = new Employee();
         emp1.setId(1L);
         emp1.setFullName("Иванов Сергей");
-        emp1.setPosition(Position.ENGINEER);
+        emp1.setPosition(UserRole.ENGINEER);
         emp1.setEmail("ivanov@ssau.ru");
 
         Employee emp2 = new Employee();
         emp2.setId(2L);
         emp2.setFullName("Петрова Мария");
-        emp2.setPosition(Position.ADMIN);
+        emp2.setPosition(UserRole.ADMIN);
         emp2.setEmail("petrova@ssau.ru");
 
         ResponseEmployeeDto dto1 = new ResponseEmployeeDto();
@@ -72,7 +72,7 @@ class EmployeeServiceTest {
         Employee emp = new Employee();
         emp.setId(1L);
         emp.setFullName("Иванов Сергей");
-        emp.setPosition(Position.ENGINEER);
+        emp.setPosition(UserRole.ENGINEER);
 
         ResponseEmployeeDto dto = new ResponseEmployeeDto();
         dto.setId(1L);
@@ -100,18 +100,18 @@ class EmployeeServiceTest {
         CreateEmployeeDto createDto = new CreateEmployeeDto();
         createDto.setFullName("Новиков Алексей");
         createDto.setEmail("novikov@ssau.ru");
-        createDto.setPosition(Position.TECHNIC);
+        createDto.setPosition(UserRole.TECHNIC);
 
         Employee entity = new Employee();
         entity.setFullName("Новиков Алексей");
         entity.setEmail("novikov@ssau.ru");
-        entity.setPosition(Position.TECHNIC);
+        entity.setPosition(UserRole.TECHNIC);
 
         Employee saved = new Employee();
         saved.setId(10L);
         saved.setFullName("Новиков Алексей");
         saved.setEmail("novikov@ssau.ru");
-        saved.setPosition(Position.TECHNIC);
+        saved.setPosition(UserRole.TECHNIC);
 
         ResponseEmployeeDto responseDto = new ResponseEmployeeDto();
         responseDto.setId(10L);
@@ -148,18 +148,18 @@ class EmployeeServiceTest {
         existing.setId(1L);
         existing.setFullName("Иванов Сергей");
         existing.setEmail("ivanov@ssau.ru");
-        existing.setPosition(Position.ENGINEER);
+        existing.setPosition(UserRole.ENGINEER);
 
         UpdateEmployeeDto updateDto = new UpdateEmployeeDto();
         updateDto.setFullName("Иванов Сергей Иванович");
         updateDto.setEmail("ivanov@ssau.ru");
-        updateDto.setPosition(Position.ADMIN);
+        updateDto.setPosition(UserRole.ADMIN);
 
         Employee updated = new Employee();
         updated.setId(1L);
         updated.setFullName("Иванов Сергей Иванович");
         updated.setEmail("ivanov@ssau.ru");
-        updated.setPosition(Position.ADMIN);
+        updated.setPosition(UserRole.ADMIN);
 
         ResponseEmployeeDto responseDto = new ResponseEmployeeDto();
         responseDto.setId(1L);

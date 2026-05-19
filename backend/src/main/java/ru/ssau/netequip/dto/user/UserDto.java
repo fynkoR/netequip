@@ -12,4 +12,6 @@ public class UserDto {
     private String username;
     private String password;
     private Long employeeId;
+    private String employeeFullName;   // ← новое: для отображения в таблице
+    private String role;               // ← новое: VIEWER/TECHNIC/ENGINEER/ADMIN
 }

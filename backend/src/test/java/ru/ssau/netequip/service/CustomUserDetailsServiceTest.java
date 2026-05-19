@@ -11,7 +11,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import ru.ssau.netequip.dto.user.UserDto;
 import ru.ssau.netequip.entity.Employee;
 import ru.ssau.netequip.entity.User;
-import ru.ssau.netequip.enums.Role;
+import ru.ssau.netequip.enums.UserRole;
 import ru.ssau.netequip.exception.employee.NotFoundEmployeeException;
 import ru.ssau.netequip.repository.EmployeeRepository;
 import ru.ssau.netequip.repository.UserRepository;
@@ -38,7 +38,7 @@ class CustomUserDetailsServiceTest {
     @InjectMocks
     private CustomUserDetailsService customUserDetailsService;
 
-    private User createUser(Long id, String username, String password, Role role, Employee employee) {
+    private User createUser(Long id, String username, String password, UserRole role, Employee employee) {
         User user = new User();
         user.setId(id);
         user.setUsername(username);
@@ -67,7 +67,7 @@ class CustomUserDetailsServiceTest {
     void testLoadUserByUsername_Success() {
         String username = "testuser";
         String password = "encodedPassword";
-        User user = createUser(1L, username, password, Role.USER, null);
+        User user = createUser(1L, username, password, UserRole.VIEWER, null);
 
         when(userRepository.findByUsername(username)).thenReturn(Optional.of(user));
 
@@ -77,14 +77,14 @@ class CustomUserDetailsServiceTest {
         assertEquals(username, userDetails.getUsername());
         assertEquals(password, userDetails.getPassword());
         assertTrue(userDetails.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_USER")));
+                .anyMatch(a -> a.getAuthority().equals("ROLE_VIEWER")));
     }
 
     @Test
     void testLoadUserByUsername_AdminRole() {
         String username = "admin";
         String password = "encodedPassword";
-        User user = createUser(1L, username, password, Role.ADMIN, null);
+        User user = createUser(1L, username, password, UserRole.ADMIN, null);
 
         when(userRepository.findByUsername(username)).thenReturn(Optional.of(user));
 
@@ -114,7 +114,7 @@ class CustomUserDetailsServiceTest {
         when(userRepository.existsByUsername(username)).thenReturn(false);
         when(passwordEncoder.encode(rawPassword)).thenReturn(encodedPassword);
 
-        User savedUser = createUser(100L, username, encodedPassword, Role.USER, null);
+        User savedUser = createUser(100L, username, encodedPassword, UserRole.VIEWER, null);
         when(userRepository.save(any(User.class))).thenReturn(savedUser);
 
         UserDto result = customUserDetailsService.register(dto);
@@ -137,12 +137,12 @@ class CustomUserDetailsServiceTest {
         when(userRepository.existsByUsername(username)).thenReturn(false);
         when(passwordEncoder.encode(rawPassword)).thenReturn("encodedAdminPass");
 
-        User savedUser = createUser(100L, username, "encodedAdminPass", Role.ADMIN, null);
+        User savedUser = createUser(100L, username, "encodedAdminPass", UserRole.ADMIN, null);
         when(userRepository.save(any(User.class))).thenReturn(savedUser);
 
         UserDto result = customUserDetailsService.register(dto);
 
-        assertEquals(Role.ADMIN.name(), savedUser.getRole().name());
+        assertEquals(UserRole.ADMIN.name(), savedUser.getRole().name());
     }
 
     @Test
@@ -157,7 +157,7 @@ class CustomUserDetailsServiceTest {
         when(employeeRepository.findById(employeeId)).thenReturn(Optional.of(employee));
         when(passwordEncoder.encode(any())).thenReturn("encoded");
 
-        User savedUser = createUser(100L, username, "encoded", Role.USER, employee);
+        User savedUser = createUser(100L, username, "encoded", UserRole.VIEWER, employee);
         when(userRepository.save(any(User.class))).thenReturn(savedUser);
 
         UserDto result = customUserDetailsService.register(dto);
@@ -192,7 +192,7 @@ class CustomUserDetailsServiceTest {
     @Test
     void testFindByUsername_Success() {
         String username = "testuser";
-        User expectedUser = createUser(1L, username, "pass", Role.USER, null);
+        User expectedUser = createUser(1L, username, "pass", UserRole.VIEWER, null);
 
         when(userRepository.findByUsername(username)).thenReturn(Optional.of(expectedUser));
 
@@ -215,7 +215,7 @@ class CustomUserDetailsServiceTest {
     @Test
     void testFindById_Success() {
         Long userId = 100L;
-        User expectedUser = createUser(userId, "testuser", "pass", Role.USER, null);
+        User expectedUser = createUser(userId, "testuser", "pass", UserRole.VIEWER, null);
 
         when(userRepository.findByIdWithEmployee(userId)).thenReturn(Optional.of(expectedUser));
 
@@ -238,8 +238,8 @@ class CustomUserDetailsServiceTest {
     @Test
     void testGetAllUsers_Success() {
         Employee employee = createEmployee(10L, "Тестов Тест");
-        User user1 = createUser(1L, "user1", "pass1", Role.USER, null);
-        User user2 = createUser(2L, "user2", "pass2", Role.ADMIN, employee);
+        User user1 = createUser(1L, "user1", "pass1", UserRole.VIEWER, null);
+        User user2 = createUser(2L, "user2", "pass2", UserRole.ADMIN, employee);
 
         when(userRepository.findAll()).thenReturn(List.of(user1, user2));
 
@@ -268,9 +268,9 @@ class CustomUserDetailsServiceTest {
         UserDto dto = new UserDto();
         dto.setEmployeeId(employeeId);
 
-        User existingUser = createUser(userId, "testuser", "pass", Role.USER, null);
+        User existingUser = createUser(userId, "testuser", "pass", UserRole.VIEWER, null);
         Employee employee = createEmployee(employeeId, "Новый сотрудник");
-        User updatedUser = createUser(userId, "testuser", "pass", Role.USER, employee);
+        User updatedUser = createUser(userId, "testuser", "pass", UserRole.VIEWER, employee);
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
         when(employeeRepository.findById(employeeId)).thenReturn(Optional.of(employee));
@@ -289,8 +289,8 @@ class CustomUserDetailsServiceTest {
         UserDto dto = new UserDto();
         dto.setEmployeeId(null); // убираем привязку
 
-        User existingUser = createUser(userId, "testuser", "pass", Role.USER, employee);
-        User updatedUser = createUser(userId, "testuser", "pass", Role.USER, null);
+        User existingUser = createUser(userId, "testuser", "pass", UserRole.VIEWER, employee);
+        User updatedUser = createUser(userId, "testuser", "pass", UserRole.VIEWER, null);
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
         when(userRepository.save(existingUser)).thenReturn(updatedUser);
@@ -320,7 +320,7 @@ class CustomUserDetailsServiceTest {
         UserDto dto = new UserDto();
         dto.setEmployeeId(employeeId);
 
-        User existingUser = createUser(userId, "testuser", "pass", Role.USER, null);
+        User existingUser = createUser(userId, "testuser", "pass", UserRole.VIEWER, null);
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
         when(employeeRepository.findById(employeeId)).thenReturn(Optional.empty());

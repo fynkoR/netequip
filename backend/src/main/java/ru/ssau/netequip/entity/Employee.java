@@ -5,7 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import ru.ssau.netequip.enums.Position;
+import ru.ssau.netequip.enums.UserRole;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -19,7 +19,7 @@ public class Employee {
     private Long id;
     private String fullName;
     @Enumerated(EnumType.STRING)
-    private Position position;
+    private UserRole position;
     @Column(unique = true)
     private String email;
 }

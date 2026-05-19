@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.client.RestClient;
@@ -16,8 +15,7 @@ import ru.ssau.netequip.dto.user.RefreshRequestDto;
 import ru.ssau.netequip.dto.user.UserInfoDto;
 import ru.ssau.netequip.entity.Employee;
 import ru.ssau.netequip.entity.User;
-import ru.ssau.netequip.enums.Position;
-import ru.ssau.netequip.enums.Role;
+import ru.ssau.netequip.enums.UserRole;
 import ru.ssau.netequip.repository.EmployeeRepository;
 import ru.ssau.netequip.repository.UserRepository;
 
@@ -58,14 +56,14 @@ class AuthControllerTest {
 
         Employee employee = new Employee();
         employee.setFullName("Тестовый Сотрудник");
-        employee.setPosition(Position.ENGINEER);
+        employee.setPosition(UserRole.ENGINEER);
         employee.setEmail("test" + System.currentTimeMillis() + "@ssau.ru");
         employeeRepository.save(employee);
 
         User user = new User();
         user.setUsername(testUsername);
         user.setPassword(passwordEncoder.encode(testPassword));
-        user.setRole(Role.USER);
+        user.setRole(UserRole.VIEWER);
         user.setEmployee(employee);
         userRepository.save(user);
     }

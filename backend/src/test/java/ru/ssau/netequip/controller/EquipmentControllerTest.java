@@ -11,9 +11,8 @@ import ru.ssau.netequip.dto.equipment.CreateEquipmentDto;
 import ru.ssau.netequip.dto.equipment.ResponseEquipmentDto;
 import ru.ssau.netequip.dto.equipment.UpdateEquipmentDto;
 import ru.ssau.netequip.entity.Employee;
-import ru.ssau.netequip.entity.Equipment;
 import ru.ssau.netequip.entity.EquipmentType;
-import ru.ssau.netequip.enums.Position;
+import ru.ssau.netequip.enums.UserRole;
 import ru.ssau.netequip.repository.EmployeeRepository;
 import ru.ssau.netequip.repository.EquipmentRepository;
 import ru.ssau.netequip.repository.EquipmentTypeRepository;
@@ -56,7 +55,7 @@ class EquipmentControllerTest {
         // Создаем сотрудника с уникальным email
         testEmployee = new Employee();
         testEmployee.setFullName("Тестов Сотрудник");
-        testEmployee.setPosition(Position.ENGINEER);
+        testEmployee.setPosition(UserRole.ENGINEER);
         testEmployee.setEmail("test" + System.currentTimeMillis() + "@ssau.ru"); // Уникальный email
         employeeRepository.save(testEmployee);
     }

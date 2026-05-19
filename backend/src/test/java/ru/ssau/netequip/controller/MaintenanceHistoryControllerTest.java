@@ -17,8 +17,7 @@ import ru.ssau.netequip.entity.Employee;
 import ru.ssau.netequip.entity.Equipment;
 import ru.ssau.netequip.entity.EquipmentType;
 import ru.ssau.netequip.entity.User;
-import ru.ssau.netequip.enums.Position;
-import ru.ssau.netequip.enums.Role;
+import ru.ssau.netequip.enums.UserRole;
 import ru.ssau.netequip.repository.*;
 
 import java.time.LocalDateTime;
@@ -76,7 +75,7 @@ class MaintenanceHistoryControllerTest {
         // Создаем сотрудника
         testEmployee = new Employee();
         testEmployee.setFullName("Тестовый Сотрудник");
-        testEmployee.setPosition(Position.ENGINEER);
+        testEmployee.setPosition(UserRole.ENGINEER);
         testEmployee.setEmail("employee" + System.currentTimeMillis() + "@ssau.ru");
         employeeRepository.save(testEmployee);
 
@@ -84,7 +83,7 @@ class MaintenanceHistoryControllerTest {
         testUser = new User();
         testUser.setUsername("testuser" + System.currentTimeMillis());
         testUser.setPassword("encodedPassword");
-        testUser.setRole(Role.USER);
+        testUser.setRole(UserRole.VIEWER);
         testUser.setEmployee(testEmployee);
         userRepository.save(testUser);
 
@@ -160,7 +159,7 @@ class MaintenanceHistoryControllerTest {
         User userWithoutEmployee = new User();
         userWithoutEmployee.setUsername("userwithoutemp" + System.currentTimeMillis());
         userWithoutEmployee.setPassword("encodedPassword");
-        userWithoutEmployee.setRole(Role.USER);
+        userWithoutEmployee.setRole(UserRole.VIEWER);
         userWithoutEmployee.setEmployee(null);
         userRepository.save(userWithoutEmployee);
 
