@@ -30,12 +30,14 @@ public class MaintenanceHistoryService {
     private final MaintenanceHistoryMapper maintenanceHistoryMapper;
     private final EquipmentRepository equipmentRepository;
     private final EmployeeRepository employeeRepository;
+    private final AuditLogService auditLogService;
     public MaintenanceHistoryService(MaintenanceHistoryRepository maintenanceHistoryRepository, MaintenanceHistoryMapper maintenanceHistoryMapper,
-                              EquipmentRepository equipmentRepository, EmployeeRepository employeeRepository){
+                              EquipmentRepository equipmentRepository, EmployeeRepository employeeRepository, AuditLogService auditLogService){
         this.maintenanceHistoryRepository = maintenanceHistoryRepository;
         this.maintenanceHistoryMapper = maintenanceHistoryMapper;
         this.equipmentRepository = equipmentRepository;
         this.employeeRepository = employeeRepository;
+        this.auditLogService = auditLogService;
     }
     @Transactional
     public ResponseMaintenanceHistoryDto create(CreateAndUpdateMaintenanceHistoryDTO dto){
@@ -64,6 +66,14 @@ public class MaintenanceHistoryService {
         }
         MaintenanceHistory saved = maintenanceHistoryRepository.save(maintenanceHistory);
         log.info("Запись успешна создана с ID: {}", saved.getId());
+
+        auditLogService.record(
+                "CREATE",
+                "maintenance_history",
+                saved.getId(),
+                saved.getType() + ":" + equipment.getName(),
+                "Создана запись обслуживания: " + saved.getType() + " для " + equipment.getName()
+        );
 
         return maintenanceHistoryMapper.toResponseDTO(saved);
     }
@@ -136,6 +146,15 @@ public class MaintenanceHistoryService {
 
         MaintenanceHistory saved = maintenanceHistoryRepository.save(maintenanceHistory);
         log.info("Запись об оборудовании с ID {} обновлено", saved.getId());
+
+        auditLogService.record(
+                "UPDATE",
+                "maintenance_history",
+                saved.getId(),
+                saved.getType() + ":" + newEquipment.getName(),
+                "Обновлена запись обслуживания: " + saved.getType() + " для " + newEquipment.getName()
+        );
+
         return maintenanceHistoryMapper.toResponseDTO(saved);
     }
 
@@ -150,6 +169,15 @@ public class MaintenanceHistoryService {
         );
 
         maintenanceHistoryRepository.deleteById(id);
+
+        auditLogService.record(
+                "DELETE",
+                "maintenance_history",
+                maintenanceHistory.getId(),
+                maintenanceHistory.getType() + ":" + maintenanceHistory.getEquipment().getName(),
+                "Удалена запись обслуживания: " + maintenanceHistory.getType() + " для " + maintenanceHistory.getEquipment().getName()
+        );
+
         log.info("Запись об обслуживания с id {} удалена", id);
     }
 }

@@ -22,9 +22,11 @@ import java.util.stream.Collectors;
 public class EquipmentTypeService {
     private final EquipmentTypeRepository equipmentTypeRepository;
     private final EquipmentTypeMapper equipmentTypeMapper;
-    public EquipmentTypeService(EquipmentTypeRepository equipmentTypeRepository, EquipmentTypeMapper equipmentTypeMapper) {
+    private final AuditLogService auditLogService;
+    public EquipmentTypeService(EquipmentTypeRepository equipmentTypeRepository, EquipmentTypeMapper equipmentTypeMapper, AuditLogService auditLogService) {
         this.equipmentTypeRepository = equipmentTypeRepository;
         this.equipmentTypeMapper = equipmentTypeMapper;
+        this.auditLogService = auditLogService;
     }
     @Transactional
     public ResponseEquipmentTypeDto create(CreateAndUpdateEquipmentTypeDto dto){
@@ -37,6 +39,13 @@ public class EquipmentTypeService {
 
         EquipmentType savedEquipmentType = equipmentTypeRepository.save(equipmentType);
         log.info("Создан тип оборудования: {}", dto.getTypeName());
+        auditLogService.record(
+                "CREATE",
+                "equipment_type",
+                savedEquipmentType.getId(),
+                savedEquipmentType.getTypeName(),
+                "Создан тип оборудования: " + savedEquipmentType.getTypeName()
+        );
         return equipmentTypeMapper.toResponseDTO(savedEquipmentType);
     }
     public ResponseEquipmentTypeDto getById(Long id){
@@ -81,25 +90,58 @@ public class EquipmentTypeService {
                     log.warn("Тип оборудования не существует с id {}", id);
                     return new NotFoundEquipmentTypeException(id);
                 });
+
+        // Запоминаем старое имя для журнала
+        String oldName = equipmentType.getTypeName();
+
         if(!equipmentType.getTypeName().equals(dto.getTypeName()) &&
         equipmentTypeRepository.existsByTypeName(dto.getTypeName())){
             log.warn("Попытка изменить название на уже существуещее: {}", dto.getTypeName());
             throw new DuplicateEquipmentTypeNameException(dto.getTypeName());
         }
+
         equipmentTypeMapper.updateEntityFromDTO(dto, equipmentType);
         EquipmentType updatedEquipmentType = equipmentTypeRepository.save(equipmentType);
         log.info("Тип оборудования с id: {} обновлен", updatedEquipmentType.getId());
+
+        String newName = updatedEquipmentType.getTypeName();
+        String desc = oldName.equals(newName)
+                ? "Обновлён тип оборудования: " + newName
+                : "Тип оборудования переименован: " + oldName + " → " + newName;
+
+        auditLogService.record(
+                "UPDATE",
+                "equipment_type",
+                updatedEquipmentType.getId(),
+                newName,
+                desc
+        );
         return equipmentTypeMapper.toResponseDTO(updatedEquipmentType);
     }
     @Transactional
     public void delete(Long id){
         log.info("Удаление типа оборудования с id: {}", id);
-        if(!equipmentTypeRepository.existsById(id)){
-            log.warn("Тип оборудования не существует с id: {}",id);
-            throw new NotFoundEquipmentTypeException(id);
-        }
+
+        // Загружаем сущность (заменяет existsById + получает данные для журнала)
+        EquipmentType type = equipmentTypeRepository.findById(id)
+                .orElseThrow(() -> {
+                    log.warn("Тип оборудования не существует с id: {}", id);
+                    return new NotFoundEquipmentTypeException(id);
+                });
 
         // проверка на то , что данный тип используется в оборудовании
+
+        // Сохраняем имя ДО удаления (после deleteById объект может стать недоступен)
+        String typeName = type.getTypeName();
+
+        // Запись в журнал перед удалением
+        auditLogService.record(
+                "DELETE",
+                "equipment_type",
+                id,
+                typeName,
+                "Удалён тип оборудования: " + typeName
+        );
 
         equipmentTypeRepository.deleteById(id);
         log.info("Тип оборудования успешно удален с id: {}", id);

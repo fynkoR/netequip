@@ -60,6 +60,9 @@ class EquipmentServiceTest {
     @Mock
     private MaintenanceHistoryRepository maintenanceHistoryRepository;
 
+    @Mock
+    private AuditLogService auditLogService;
+
     private EquipmentType createEquipmentType(Long id, String typeName) {
         EquipmentType type = new EquipmentType();
         type.setId(id);

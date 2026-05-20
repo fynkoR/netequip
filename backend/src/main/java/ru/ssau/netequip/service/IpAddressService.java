@@ -29,10 +29,13 @@ public class IpAddressService {
     private final IpAddressRepository ipAddressRepository;
     private final IpAddressMapper ipAddressMapper;
     private final EquipmentRepository equipmentRepository;
-    public IpAddressService(IpAddressRepository ipAddressRepository, IpAddressMapper ipAddressMapper, EquipmentRepository equipmentRepository) {
+    private final AuditLogService auditLogService;
+    public IpAddressService(IpAddressRepository ipAddressRepository, IpAddressMapper ipAddressMapper, EquipmentRepository equipmentRepository,
+                            AuditLogService auditLogService) {
         this.ipAddressRepository = ipAddressRepository;
         this.ipAddressMapper = ipAddressMapper;
         this.equipmentRepository = equipmentRepository;
+        this.auditLogService = auditLogService;
     }
     @Transactional
     public ResponseIpAddressDto create(CreateAndUpdateIpAddress dto){
@@ -57,6 +60,15 @@ public class IpAddressService {
         }
         IpAddress savedIpAddress = ipAddressRepository.save(ipAddress);
         log.info("Ip-address создан с id: {}", savedIpAddress.getId());
+
+        auditLogService.record(
+                "CREATE",
+                "ip_address",
+                savedIpAddress.getId(),
+                savedIpAddress.getIpAddress(),
+                "Добавлен IP-адрес: " + savedIpAddress.getIpAddress() + " для " + equipment.getName()
+        );
+
         return ipAddressMapper.toResponseDTO(savedIpAddress);
     }
     public ResponseIpAddressDto getById(Long id){
@@ -122,6 +134,15 @@ public class IpAddressService {
 
         IpAddress updIpAddress = ipAddressRepository.save(ipAddress);
         log.info("Ip-address обнвлен с id: {}", updIpAddress.getId());
+
+        auditLogService.record(
+                "UPDATE",
+                "ip_address",
+                updIpAddress.getId(),
+                updIpAddress.getIpAddress(),
+                "Обновлён IP-адрес: " + updIpAddress.getIpAddress()
+        );
+
         return ipAddressMapper.toResponseDTO(updIpAddress);
     }
 
@@ -134,6 +155,13 @@ public class IpAddressService {
                     return new NotFoundIpAddressException(id);
                 });
         ipAddressRepository.delete(ipAddress);
+        auditLogService.record(
+                "DELETE",
+                "ip_address",
+                ipAddress.getId(),
+                ipAddress.getIpAddress(),
+                "Удалён IP-адрес: " + ipAddress.getIpAddress()
+        );
         log.info("Ip-address удален с id: {}",id);
     }
 

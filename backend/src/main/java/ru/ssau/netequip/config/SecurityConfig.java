@@ -84,6 +84,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT,    "/types/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/types/**").hasRole("ADMIN")
 
+                        // ===== Журнал действий — только ADMIN =====
+                        .requestMatchers("/audit/**").hasRole("ADMIN")
+
                         // ===== Оборудование — write для ENGINEER и ADMIN =====
                         .requestMatchers(HttpMethod.POST,   "/equipments/**").hasAnyRole("ENGINEER", "ADMIN")
                         .requestMatchers(HttpMethod.PUT,    "/equipments/**").hasAnyRole("ENGINEER", "ADMIN")

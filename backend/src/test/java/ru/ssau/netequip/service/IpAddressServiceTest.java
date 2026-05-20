@@ -40,6 +40,9 @@ class IpAddressServiceTest {
     @InjectMocks
     private IpAddressService ipAddressService;
 
+    @Mock
+    private AuditLogService auditLogService;
+
     private Equipment createEquipment(Long id) {
         Equipment equipment = new Equipment();
         equipment.setId(id);

@@ -32,6 +32,9 @@ class EquipmentTypeServiceTest {
     @InjectMocks
     private EquipmentTypeService equipmentTypeService;
 
+    @Mock
+    private AuditLogService auditLogService;
+
     private EquipmentType createEquipmentType(Long id, String typeName) {
         EquipmentType type = new EquipmentType();
         type.setId(id);
@@ -217,8 +220,9 @@ class EquipmentTypeServiceTest {
     @Test
     void testDelete_Success() {
         Long typeId = 100L;
+        EquipmentType type = createEquipmentType(typeId, "Switch");
 
-        when(equipmentTypeRepository.existsById(typeId)).thenReturn(true);
+        when(equipmentTypeRepository.findById(typeId)).thenReturn(Optional.of(type));
 
         assertDoesNotThrow(() -> equipmentTypeService.delete(typeId));
         verify(equipmentTypeRepository, times(1)).deleteById(typeId);
@@ -228,7 +232,7 @@ class EquipmentTypeServiceTest {
     void testDelete_NotFound_ShouldThrowException() {
         Long typeId = 999L;
 
-        when(equipmentTypeRepository.existsById(typeId)).thenReturn(false);
+        when(equipmentTypeRepository.findById(typeId)).thenReturn(Optional.empty());
 
         assertThrows(NotFoundEquipmentTypeException.class,
                 () -> equipmentTypeService.delete(typeId));

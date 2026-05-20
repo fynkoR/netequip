@@ -39,6 +39,9 @@ class DevicePortServiceTest {
     @InjectMocks
     private DevicePortService devicePortService;
 
+    @Mock
+    private AuditLogService auditLogService;
+
     private Equipment createEquipment(Long id) {
         Equipment equipment = new Equipment();
         equipment.setId(id);

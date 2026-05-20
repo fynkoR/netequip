@@ -28,14 +28,16 @@ public class DevicePortService {
     private final DevicePortRepository devicePortRepository;
     private final EquipmentRepository equipmentRepository;
     private final DevicePortMapper devicePortMapper;
+    private final AuditLogService auditLogService;
     public DevicePortService(DevicePortRepository devicePortRepository, EquipmentRepository equipmentRepository,
-                             DevicePortMapper devicePortMapper) {
+                             DevicePortMapper devicePortMapper, AuditLogService auditLogService) {
         this.devicePortRepository = devicePortRepository;
         this.equipmentRepository = equipmentRepository;
         this.devicePortMapper = devicePortMapper;
+        this.auditLogService = auditLogService;
     }
     @Transactional
-    public ResponseDevicePortDto    create(CreateAndUpdateDevicePortDto dto) {
+    public ResponseDevicePortDto create(CreateAndUpdateDevicePortDto dto) {
         log.info("Создание нового порта № {} для оборудования ID {}",
                 dto.getPortNumber(), dto.getEquipmentId());
         Equipment equipment = equipmentRepository.findById(dto.getEquipmentId()).orElseThrow(
@@ -56,6 +58,15 @@ public class DevicePortService {
 
         DevicePort savedDevicePort = devicePortRepository.save(devicePort);
         log.info("Порт создан с ID {}",savedDevicePort.getId());
+
+        auditLogService.record(
+                "CREATE",
+                "device_port",
+                savedDevicePort.getId(),
+                equipment.getName() + ":" + savedDevicePort.getPortNumber(),
+                "Создан порт " + savedDevicePort.getPortNumber() + " на " + equipment.getName()
+        );
+
         return devicePortMapper.toResponseDTO(savedDevicePort);
     }
 
@@ -130,6 +141,14 @@ public class DevicePortService {
         DevicePort updDevicePort = devicePortRepository.save(devicePort);
         log.info("Порт с ID {} обновлен", updDevicePort.getId());
 
+        auditLogService.record(
+                "UPDATE",
+                "device_port",
+                updDevicePort.getId(),
+                equipment.getName() + ":" + updDevicePort.getPortNumber(),
+                "Обновлен порт " + updDevicePort.getPortNumber() + " на " + equipment.getName()
+        );
+
         return devicePortMapper.toResponseDTO(updDevicePort);
     }
 
@@ -151,6 +170,15 @@ public class DevicePortService {
         }
 
         devicePortRepository.deleteById(id);
+
+        auditLogService.record(
+                "DELETE",
+                "device_port",
+                devicePort.getId(),
+                devicePort.getEquipment().getName() + ":" + devicePort.getPortNumber(),
+                "Обновлен порт " + devicePort.getPortNumber() + " на " + devicePort.getEquipment().getName()
+        );
+
         log.info("Порт с ID {} удален", id);
     }
 

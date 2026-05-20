@@ -44,6 +44,9 @@ class MaintenanceHistoryServiceTest {
     @InjectMocks
     private MaintenanceHistoryService maintenanceHistoryService;
 
+    @Mock
+    private AuditLogService auditLogService;
+
     private Equipment createEquipment(Long id) {
         Equipment equipment = new Equipment();
         equipment.setId(id);

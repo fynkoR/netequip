@@ -24,9 +24,11 @@ import java.util.stream.Collectors;
 public class EmployeeService {
     private final EmployeeRepository employeeRepository;
     private final EmployeeMapper employeeMapper;
-    public EmployeeService(EmployeeRepository employeeRepository, EmployeeMapper employeeMapper) {
+    private final AuditLogService auditLogService;
+    public EmployeeService(EmployeeRepository employeeRepository, EmployeeMapper employeeMapper, AuditLogService auditLogService) {
         this.employeeRepository = employeeRepository;
         this.employeeMapper = employeeMapper;
+        this.auditLogService = auditLogService;
     }
     @Transactional
     public ResponseEmployeeDto create(CreateEmployeeDto dto) {
@@ -41,6 +43,14 @@ public class EmployeeService {
 
         Employee savedEmployee = employeeRepository.save(employee);
         log.info("Сотрудник создан с id: {}", savedEmployee.getId());
+
+        auditLogService.record(
+                "CREATE",
+                "employee",
+                savedEmployee.getId(),
+                savedEmployee.getFullName(),
+                "Создан сотрудник: " + savedEmployee.getFullName()
+        );
 
         return employeeMapper.toResponseDTO(savedEmployee);
     }
@@ -95,17 +105,38 @@ public class EmployeeService {
         employeeMapper.updateEmployeeDto(dto, existingEmployee);
         Employee updatedEmployee = employeeRepository.save(existingEmployee);
         log.info("Сотрудник с id: {} обновлен", updatedEmployee.getId());
+
+        auditLogService.record(
+                "UPDATE",
+                "employee",
+                updatedEmployee.getId(),
+                updatedEmployee.getFullName(),
+                "Обновлен сотрудник: " + updatedEmployee.getFullName()
+        );
+
         return employeeMapper.toResponseDTO(updatedEmployee);
     }
     @Transactional
     public void delete(Long id) {
         log.info("Удаление сотрудника с id: {}", id);
-        if(!employeeRepository.existsById(id)) {
-            log.warn("Сотрудник не существует с данным id: {}", id);
-            throw new NotFoundEmployeeException(id);
-        }
+
+        Employee employee = employeeRepository.findById(id)
+                .orElseThrow(() -> {
+                    log.warn("Сотрудник не существует с id: {}",id);
+                    return new NotFoundEmployeeException(id);
+                });
+
+        String fullName = employee.getFullName();
 
         // еще нужно добавить проверка на оборудование , которое закреплено у данного сотрудника
+
+        auditLogService.record(
+                "DELETE",
+                "employee",
+                id,
+                fullName,
+                "Удалён сотрудник: " + fullName
+        );
 
         employeeRepository.deleteById(id);
         log.info("Сотрудник удален с id: {}", id);

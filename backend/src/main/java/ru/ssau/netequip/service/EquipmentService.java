@@ -34,9 +34,10 @@ public class EquipmentService {
     private final DevicePortRepository devicePortRepository;
     private final IpAddressRepository ipAddressRepository;
     private final MaintenanceHistoryRepository maintenanceHistoryRepository;
+    private final AuditLogService auditLogService;
     public EquipmentService(EquipmentRepository equipmentRepository, EquipmentMapper equipmentMapper, EmployeeRepository employeeRepository,
                             EquipmentTypeRepository equipmentTypeRepository, DevicePortRepository devicePortRepository, IpAddressRepository ipAddressRepository,
-                            MaintenanceHistoryRepository maintenanceHistoryRepository) {
+                            MaintenanceHistoryRepository maintenanceHistoryRepository, AuditLogService auditLogService) {
         this.equipmentRepository = equipmentRepository;
         this.equipmentMapper = equipmentMapper;
         this.employeeRepository = employeeRepository;
@@ -44,6 +45,7 @@ public class EquipmentService {
         this.devicePortRepository = devicePortRepository;
         this.ipAddressRepository = ipAddressRepository;
         this.maintenanceHistoryRepository = maintenanceHistoryRepository;
+        this.auditLogService = auditLogService;
     }
     @Transactional
     public ResponseEquipmentDto create(CreateEquipmentDto dto) {
@@ -73,6 +75,14 @@ public class EquipmentService {
         }
         Equipment saved = equipmentRepository.save(equipment);
         log.info("Оборудование: {} создано",saved.getName());
+
+        auditLogService.record(
+                "CREATE",
+                "equipment",
+                saved.getId(),
+                saved.getName(),
+                "Создано оборудование: " + saved.getName()
+        );
         return equipmentMapper.toResponseDTO(saved);
     }
 
@@ -144,6 +154,15 @@ public class EquipmentService {
 
         Equipment upd = equipmentRepository.save(equipment);
         log.info("Обородувание обновлено с id: {}",id);
+
+        auditLogService.record(
+                "UPDATE",
+                "equipment",
+                upd.getId(),
+                upd.getName(),
+                "Обновлено оборудование: " + upd.getName()
+        );
+
         return equipmentMapper.toResponseDTO(upd);
     }
     @Transactional
@@ -184,6 +203,14 @@ public class EquipmentService {
 
         log.info("Оборудование удалено с id: {}, освобождено внешних связей: {}",
                 id, incomingConnections.size());
+
+        auditLogService.record(
+                "DELETE",
+                "equipment",
+                equipment.getId(),
+                equipment.getName(),
+                "Удлалено оборудование: " + equipment.getName()
+        );
     }
 
     private void validateSerialAndMac(Long id, String serial, String mac){

@@ -10,6 +10,7 @@ import ru.ssau.netequip.dto.employee.ResponseEmployeeDto;
 import ru.ssau.netequip.dto.employee.UpdateEmployeeDto;
 import ru.ssau.netequip.entity.Employee;
 import ru.ssau.netequip.enums.UserRole;
+import ru.ssau.netequip.exception.employee.NotFoundEmployeeException;
 import ru.ssau.netequip.mapper.EmployeeMapper;
 import ru.ssau.netequip.repository.EmployeeRepository;
 import static org.mockito.ArgumentMatchers.any;
@@ -32,6 +33,9 @@ class EmployeeServiceTest {
 
     @InjectMocks
     private EmployeeService employeeService;
+
+    @Mock
+    private AuditLogService auditLogService;
 
     @Test
     void testGetAll() {
@@ -189,8 +193,13 @@ class EmployeeServiceTest {
 
     @Test
     void testDelete() {
-        when(employeeRepository.existsById(1L)).thenReturn(true);
+        Employee employee = new Employee();
+        employee.setId(1L);
+        employee.setFullName("Иванов Иван");
+
+        when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
         doNothing().when(employeeRepository).deleteById(1L);
+        doNothing().when(auditLogService).record(any(), any(), any(), any(), any());
 
         assertDoesNotThrow(() -> employeeService.delete(1L));
         verify(employeeRepository, times(1)).deleteById(1L);
@@ -198,9 +207,10 @@ class EmployeeServiceTest {
 
     @Test
     void testDeleteNotFound() {
-        when(employeeRepository.existsById(99L)).thenReturn(false);
+        when(employeeRepository.findById(99L)).thenReturn(Optional.empty());
 
-        assertThrows(Exception.class, () -> employeeService.delete(99L));
+        assertThrows(NotFoundEmployeeException.class,
+                () -> employeeService.delete(99L));
         verify(employeeRepository, never()).deleteById(99L);
     }
 }
