@@ -1,0 +1,73 @@
+<div class="page">
+  <div class="page-header">
+    <h2>Журнал действий</h2>
+  </div>
+
+  <div class="search-bar">
+    <input
+      type="text"
+      [formControl]="searchControl"
+      placeholder="Поиск по пользователю, действию, сущности или описанию..."
+      class="search-input"
+    />
+    <button *ngIf="searchText" class="btn-clear" (click)="clearSearch()" title="Очистить">✕</button>
+  </div>
+
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>Время</th>
+          <th>Пользователь</th>
+          <th>Действие</th>
+          <th>Объект</th>
+          <th>Описание</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of items">
+          <td class="cell-time">{{ item.timestamp | date:'dd.MM.yyyy HH:mm:ss' }}</td>
+          <td>
+            <div class="user-cell">
+              <span class="username">{{ item.username }}</span>
+              <span class="employee" *ngIf="item.employeeFullName">{{ item.employeeFullName }}</span>
+            </div>
+          </td>
+          <td>
+            <span class="badge" [ngClass]="actionClass(item.action)">{{ item.action }}</span>
+          </td>
+          <td>
+            <div class="entity-cell">
+              <span class="entity-type">{{ entityLabel(item.entityType) }}</span>
+              <span class="entity-name" *ngIf="item.entityName">{{ item.entityName }}</span>
+            </div>
+          </td>
+          <td class="cell-description">{{ item.description }}</td>
+        </tr>
+        <tr *ngIf="items.length === 0">
+          <td colspan="5" class="empty">
+            <ng-container *ngIf="searchText; else noData">
+              По запросу «{{ searchText }}» ничего не найдено
+            </ng-container>
+            <ng-template #noData>Журнал пуст</ng-template>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="pagination" *ngIf="totalElements > 0">
+    <div class="pagination-info">Показано {{ items.length }} из {{ totalElements }}</div>
+    <div class="pagination-controls">
+      <button class="btn-page" (click)="prevPage()" [disabled]="currentPage === 0">←</button>
+      <span class="page-indicator">Страница {{ currentPage + 1 }} из {{ totalPages }}</span>
+      <button class="btn-page" (click)="nextPage()" [disabled]="currentPage >= totalPages - 1">→</button>
+    </div>
+    <div class="pagination-size">
+      <label>На странице:</label>
+      <select [ngModel]="pageSize" (ngModelChange)="changePageSize($event)" name="pageSize">
+        <option *ngFor="let size of pageSizeOptions" [ngValue]="size">{{ size }}</option>
+      </select>
+    </div>
+  </div>
+</div>

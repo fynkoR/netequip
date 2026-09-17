@@ -1,0 +1,145 @@
+<div class="discovery-page">
+  <h2>Сканирование сети</h2>
+  <p class="hint">
+    Введите подсеть в формате CIDR. Сканер опросит все адреса по SNMP
+    и покажет найденные устройства.
+  </p>
+
+  <!-- Форма сканирования -->
+  <div class="scan-form">
+    <div class="form-row">
+      <label>Подсеть (CIDR):</label>
+      <input type="text" [(ngModel)]="request.cidr"
+             placeholder="например, 192.168.1.0/24"
+             [disabled]="scanning">
+    </div>
+    <div class="form-row">
+      <label>Порт:</label>
+      <input type="number" [(ngModel)]="request.port"
+             [disabled]="scanning">
+    </div>
+    <div class="form-row">
+      <label>Community:</label>
+      <input type="text" [(ngModel)]="request.community"
+             [disabled]="scanning">
+    </div>
+    <button class="btn-primary" (click)="onScan()" [disabled]="scanning">
+      {{ scanning ? 'Сканируем...' : 'Сканировать' }}
+    </button>
+  </div>
+
+  <!-- Ошибка -->
+  <div *ngIf="errorMessage" class="alert-error">
+    {{ errorMessage }}
+  </div>
+
+  <!-- Результаты сканирования -->
+  <div *ngIf="scanResult && !importResult" class="scan-results">
+    <h3>Результаты сканирования</h3>
+    <p class="summary">
+      Просканировано адресов: <b>{{ scanResult.totalAddressesScanned }}</b>,
+      найдено устройств: <b>{{ devices.length }}</b>,
+      время: <b>{{ scanResult.durationMs }} мс</b>
+    </p>
+
+    <div *ngIf="devices.length === 0" class="empty">
+      В указанной подсети SNMP-устройства не найдены.
+    </div>
+
+    <table *ngIf="devices.length > 0" class="results-table">
+      <thead>
+        <tr>
+          <th>
+            <input type="checkbox"
+                   [checked]="selectedCount === devices.length"
+                   (change)="toggleAll($any($event.target).checked)">
+          </th>
+          <th>IP</th>
+          <th>Имя</th>
+          <th>Описание</th>
+          <th>Тип оборудования</th>
+          <th>Порты</th>
+          <th>IP-адреса</th>
+          <th>Авто</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let device of devices">
+          <td>
+            <input type="checkbox" [(ngModel)]="device.selected">
+          </td>
+          <td>{{ device.snmpData.system.ipAddress }}</td>
+          <td>{{ device.snmpData.system.name }}</td>
+          <td class="descr">{{ device.snmpData.system.description }}</td>
+          <td>
+            <select [(ngModel)]="device.selectedTypeId">
+              <option [ngValue]="null">— выберите тип —</option>
+              <option *ngFor="let type of equipmentTypes" [ngValue]="type.id">
+                {{ type.typeName }} ({{ type.manufacturer }} {{ type.model }})
+              </option>
+            </select>
+          </td>
+          <td>{{ device.snmpData.ports.length }}</td>
+          <td>{{ device.snmpData.ipAddresses.length }}</td>
+          <td>
+            <span class="badge" [ngClass]="confidenceClass(device.matchConfidence)">
+              {{ confidenceIcon(device.matchConfidence) }}
+            </span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div *ngIf="devices.length > 0" class="actions">
+      <span class="selection-info">Выбрано: {{ selectedCount }} из {{ devices.length }}</span>
+      <button class="btn-primary"
+              (click)="onImport()"
+              [disabled]="!canImport || importing">
+        {{ importing ? 'Импортируем...' : 'Импортировать выбранные' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Отчёт по импорту -->
+  <div *ngIf="importResult" class="import-results">
+    <h3>Результаты импорта</h3>
+    <p class="summary">
+      Запрошено: <b>{{ importResult.requestedCount }}</b>,
+      создано: <b class="text-success">{{ importResult.createdCount }}</b>,
+      пропущено: <b class="text-warning">{{ importResult.skippedCount }}</b>,
+      ошибок: <b class="text-danger">{{ importResult.failedCount }}</b>
+    </p>
+
+    <table class="results-table">
+      <thead>
+        <tr>
+          <th>IP</th>
+          <th>Имя</th>
+          <th>Статус</th>
+          <th>Порты</th>
+          <th>IP-адреса</th>
+          <th>Сообщение</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let r of importResult.reports">
+          <td>{{ r.ipAddress }}</td>
+          <td>{{ r.deviceName }}</td>
+          <td>
+            <span class="badge"
+                  [ngClass]="{
+                    'badge-success': r.status === 'CREATED',
+                    'badge-warning': r.status === 'SKIPPED',
+                    'badge-danger': r.status === 'FAILED'
+                  }">
+              {{ r.status }}
+            </span>
+          </td>
+          <td>{{ r.portsCreated }}</td>
+          <td>{{ r.ipsCreated }}</td>
+          <td>{{ r.message }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

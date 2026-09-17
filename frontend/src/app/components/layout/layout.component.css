@@ -1,0 +1,157 @@
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 240px;
+  background: #1a1a2e;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  transition: width 0.3s;
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  z-index: 100;
+}
+
+.sidebar-collapsed .sidebar {
+  width: 60px;
+}
+
+.sidebar-header {
+  padding: 20px;
+  text-align: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.logo {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.logo-short {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: 12px 0;
+  overflow-y: auto;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 20px;
+  color: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+  transition: all 0.2s;
+  gap: 12px;
+  font-size: 14px;
+}
+
+.nav-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.nav-item.active {
+  background: rgba(74, 108, 247, 0.3);
+  color: #fff;
+  border-right: 3px solid #4a6cf7;
+}
+
+.nav-icon {
+  font-size: 18px;
+  min-width: 20px;
+  text-align: center;
+}
+
+.sidebar-collapsed .nav-item {
+  justify-content: center;
+  padding: 12px;
+}
+
+/* Main content */
+.main-content {
+  flex: 1;
+  margin-left: 240px;
+  transition: margin-left 0.3s;
+  background: #f0f2f5;
+}
+
+.sidebar-collapsed .main-content {
+  margin-left: 60px;
+}
+
+/* Header */
+.top-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  height: 56px;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.toggle-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 6px;
+  color: #333;
+}
+
+.toggle-btn:hover {
+  background: #f0f2f5;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.user-info {
+  font-size: 14px;
+  color: #333;
+}
+
+.user-role {
+  color: #888;
+  font-size: 12px;
+}
+
+.btn-logout {
+  padding: 6px 16px;
+  background: none;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-logout:hover {
+  background: #e74c3c;
+  color: #fff;
+  border-color: #e74c3c;
+}
+
+/* Page content */
+.page-content {
+  padding: 24px;
+}

@@ -1,0 +1,122 @@
+<div class="page">
+  <div class="page-header">
+    <h1>Оборудование</h1>
+    @if (authService.canEditEquipment()) {
+      <button class="btn-add" (click)="openCreate()">+ Добавить</button>
+    }
+  </div>
+
+  <div class="search-bar">
+    <input
+      type="text"
+      [formControl]="searchControl"
+      placeholder="Поиск по названию, серийнику, MAC, IP, адресу, типу или сотруднику..."
+      class="search-input"
+    />
+    <button *ngIf="searchText" class="btn-clear" (click)="clearSearch()" title="Очистить поиск">✕</button>
+  </div>
+
+  <div class="modal-overlay" *ngIf="showForm" (click)="cancel()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <h2>{{ editing ? 'Редактирование' : 'Новое оборудование' }}</h2>
+      <form (ngSubmit)="save()">
+        <div class="form-group">
+          <label>Название</label>
+          <input [(ngModel)]="form.name" name="name" required placeholder="Cisco Switch 2960" />
+        </div>
+        <div class="form-group">
+          <label>Тип оборудования</label>
+          <select [(ngModel)]="form.typeId" name="typeId" required>
+            <option [value]="0" disabled>Выберите тип</option>
+            <option *ngFor="let t of types" [value]="t.id">{{ t.typeName }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Ответственный сотрудник</label>
+          <select [(ngModel)]="form.employeeId" name="employeeId">
+            <option [ngValue]="undefined">Не назначен</option>
+            <option *ngFor="let e of employees" [value]="e.id">{{ e.fullName }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Серийный номер</label>
+          <input [(ngModel)]="form.serialNumber" name="serialNumber" placeholder="SN-12345" />
+        </div>
+        <div class="form-group">
+          <label>MAC-адрес</label>
+          <input [(ngModel)]="form.macAddress" name="macAddress" placeholder="AA:BB:CC:DD:EE:FF" />
+        </div>
+        <div class="form-group">
+          <label>Адрес</label>
+          <input [(ngModel)]="form.address" name="address" placeholder="Корпус 1, серверная" />
+        </div>
+        <div class="form-group">
+          <label>Статус</label>
+          <select [(ngModel)]="form.status" name="status">
+            <option *ngFor="let s of statuses" [value]="s">{{ s }}</option>
+          </select>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn-cancel" (click)="cancel()">Отмена</button>
+          <button type="submit" class="btn-save">Сохранить</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Название</th>
+          <th>Тип</th>
+          <th>Сотрудник</th>
+          <th>Серийный №</th>
+          <th>Статус</th>
+          <th>Действия</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let eq of equipments">
+          <td>{{ eq.id }}</td>
+          <td>{{ eq.name }}</td>
+          <td>{{ eq.typeName }}</td>
+          <td>{{ eq.employeeFullName || '—' }}</td>
+          <td>{{ eq.serialNumber || '—' }}</td>
+          <td><span class="badge">{{ eq.status }}</span></td>
+          <td class="actions">
+            @if (authService.canEditEquipment()) {
+              <button class="btn-edit" (click)="openEdit(eq)">✏️</button>
+              <button class="btn-delete" (click)="delete(eq.id!)">🗑️</button>
+            }
+          </td>
+        </tr>
+          <tr *ngIf="equipments.length === 0">
+            <td colspan="7" class="empty">
+              <ng-container *ngIf="searchText; else noData">
+                По запросу «{{ searchText }}» ничего не найдено
+              </ng-container>
+              <ng-template #noData>Нет данных</ng-template>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="pagination" *ngIf="totalElements > 0">
+    <div class="pagination-info">Показано {{ equipments.length }} из {{ totalElements }}</div>
+    <div class="pagination-controls">
+      <button class="btn-page" (click)="prevPage()" [disabled]="currentPage === 0">←</button>
+      <span class="page-indicator">Страница {{ currentPage + 1 }} из {{ totalPages }}</span>
+      <button class="btn-page" (click)="nextPage()" [disabled]="currentPage >= totalPages - 1">→</button>
+    </div>
+    <div class="pagination-size">
+      <label>На странице:</label>
+      <select [ngModel]="pageSize" (ngModelChange)="changePageSize($event)" name="pageSize">
+        <option *ngFor="let size of pageSizeOptions" [ngValue]="size">{{ size }}</option>
+      </select>
+    </div>
+  </div>
+
+</div>

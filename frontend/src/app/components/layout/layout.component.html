@@ -1,0 +1,89 @@
+<div class="app-layout" [class.sidebar-collapsed]="sidebarCollapsed">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <span class="logo" *ngIf="!sidebarCollapsed">NetEquip</span>
+          <span class="logo-short" *ngIf="sidebarCollapsed">NE</span>
+        </div>
+
+        <nav class="sidebar-nav">
+          <!-- Главная — всем -->
+      <a routerLink="/dashboard" routerLinkActive="active" class="nav-item">
+        <span class="nav-icon"></span>
+        <span class="nav-label" *ngIf="!sidebarCollapsed">Главная</span>
+      </a>
+
+      <!-- Сотрудники — только ADMIN -->
+      <a *ngIf="authService.canManageAdminEntities()"
+        routerLink="/employees" routerLinkActive="active" class="nav-item">
+        <span class="nav-icon"></span>
+        <span class="nav-label" *ngIf="!sidebarCollapsed">Сотрудники</span>
+      </a>
+
+      <!-- Оборудование — всем видеть, кнопки внутри прячутся отдельно -->
+      <a routerLink="/equipment" routerLinkActive="active" class="nav-item">
+        <span class="nav-icon"></span>
+        <span class="nav-label" *ngIf="!sidebarCollapsed">Оборудование</span>
+      </a>
+
+      <!-- Типы оборудования — только ADMIN -->
+      <a *ngIf="authService.canManageAdminEntities()"
+        routerLink="/equipment-types" routerLinkActive="active" class="nav-item">
+        <span class="nav-icon"></span>
+        <span class="nav-label" *ngIf="!sidebarCollapsed">Типы оборуд.</span>
+      </a>
+
+      <!-- IP-адреса — всем видно -->
+      <a routerLink="/ip-addresses" routerLinkActive="active" class="nav-item">
+        <span class="nav-icon"></span>
+        <span class="nav-label" *ngIf="!sidebarCollapsed">IP-адреса</span>
+      </a>
+
+      <!-- Порты — всем видно -->
+      <a routerLink="/device-ports" routerLinkActive="active" class="nav-item">
+        <span class="nav-icon"></span>
+        <span class="nav-label" *ngIf="!sidebarCollapsed">Порты</span>
+      </a>
+
+      <!-- Обслуживание — всем (запись виден всем, фильтр кнопок внутри) -->
+      <a routerLink="/maintenance" routerLinkActive="active" class="nav-item">
+        <span class="nav-icon"></span>
+        <span class="nav-label" *ngIf="!sidebarCollapsed">Обслуживание</span>
+      </a>
+
+      <!-- Сканирование сети — ENGINEER и ADMIN -->
+      <a *ngIf="authService.canUseDiscovery()"
+        routerLink="/discovery" routerLinkActive="active" class="nav-item">
+        <span class="nav-icon"></span>
+        <span class="nav-label" *ngIf="!sidebarCollapsed">Сканирование сети</span>
+      </a>
+      <a routerLink="/topology" routerLinkActive="active" class="nav-item">
+        <span class="nav-icon"></span>
+        <span class="nav-label" *ngIf="!sidebarCollapsed">Топология</span>
+      </a>
+      <a *ngIf="authService.canManageAdminEntities()"
+       routerLink="/audit" routerLinkActive="active" class="nav-item">
+        <span class="nav-icon"></span>
+        <span class="nav-label" *ngIf="!sidebarCollapsed">Журнал</span>
+      </a>
+    </nav>
+  </aside>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <header class="top-header">
+      <button class="toggle-btn" (click)="toggleSidebar()">☰</button>
+      <div class="header-right">
+        <span class="user-info" *ngIf="authService.getCurrentUser() as user">
+          {{ user.fullName || user.username }}
+          <span class="user-role">({{ user.roles?.join(', ') }})</span>
+        </span>
+        <button class="btn-logout" (click)="logout()">Выйти</button>
+      </div>
+    </header>
+
+    <main class="page-content">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>

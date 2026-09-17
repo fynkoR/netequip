@@ -1,0 +1,56 @@
+<div class="register-wrapper">
+  <div class="register-card">
+    <h2>Регистрация</h2>
+    <p class="subtitle">Создайте аккаунт в системе NetEquip</p>
+
+    <div class="error-message" *ngIf="error">{{ error }}</div>
+    <div class="success-message" *ngIf="success">{{ success }}</div>
+
+    <form (ngSubmit)="onSubmit()">
+      <div class="form-group">
+        <label for="username">Логин</label>
+        <input
+          id="username"
+          type="text"
+          [(ngModel)]="username"
+          name="username"
+          placeholder="Введите логин"
+          required
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="password">Пароль</label>
+        <input
+          id="password"
+          type="password"
+          [(ngModel)]="password"
+          name="password"
+          placeholder="Минимум 6 символов"
+          required
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="confirmPassword">Подтвердите пароль</label>
+        <input
+          id="confirmPassword"
+          type="password"
+          [(ngModel)]="confirmPassword"
+          name="confirmPassword"
+          placeholder="Повторите пароль"
+          required
+        />
+      </div>
+
+      <button type="submit" class="btn-primary"
+        [disabled]="!username || !password || !confirmPassword">
+        Зарегистрироваться
+      </button>
+    </form>
+
+    <p class="login-link">
+      Уже есть аккаунт? <a routerLink="/login">Войти</a>
+    </p>
+  </div>
+</div>

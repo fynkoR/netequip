@@ -1,0 +1,147 @@
+<div class="page">
+  <div class="page-header">
+    <h1>Типы оборудования</h1>
+    @if (authService.canManageAdminEntities()) {
+      <button class="btn-add" (click)="openCreate()">+ Добавить</button>
+    }
+  </div>
+
+  <div class="modal-overlay" *ngIf="showForm" (click)="cancel()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <h2>{{ editing ? 'Редактирование' : 'Новый тип оборудования' }}</h2>
+      <form (ngSubmit)="save()">
+        <div class="form-group">
+          <label>Название типа</label>
+          <input [(ngModel)]="form.typeName" name="typeName" required placeholder="Коммутатор" />
+        </div>
+        <div class="form-group">
+          <label>Производитель</label>
+          <input [(ngModel)]="form.manufacturer" name="manufacturer" placeholder="Cisco" />
+        </div>
+        <div class="form-group">
+          <label>Модель</label>
+          <input [(ngModel)]="form.model" name="model" placeholder="Catalyst 2960-X" />
+        </div>
+        <div class="form-group">
+          <label>SNMP Object ID:</label>
+          <input type="text"
+                [(ngModel)]="form.snmpObjectId"
+                name="snmpObjectId"
+                placeholder="например, 1.3.6.1.4.1.9.1.1933">
+        </div>
+        <div class="form-group">
+          <label>Кол-во портов по умолчанию</label>
+          <input type="number" [(ngModel)]="form.defaultPortCount" name="defaultPortCount" min="0" max="256" placeholder="24" />
+        </div>
+        <div class="form-group">
+          <label>Тип подключения</label>
+          <input [(ngModel)]="form.connectionType" name="connectionType" placeholder="Ethernet" />
+        </div>
+        <div class="form-group">
+          <label>Уровень OSI</label>
+          <input [(ngModel)]="form.osiLevel" name="osiLevel" placeholder="L2" />
+        </div>
+        <div class="form-group">
+          <label>Описание</label>
+          <textarea [(ngModel)]="form.description" name="description" rows="3" placeholder="Описание типа оборудования"></textarea>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn-cancel" (click)="cancel()">Отмена</button>
+          <button type="submit" class="btn-save">Сохранить</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="search-bar">
+    <input
+      type="text"
+      [formControl]="searchControl"
+      placeholder="Поиск по названию, производителю или модели..."
+      class="search-input"
+    />
+    <button
+      *ngIf="searchText"
+      class="btn-clear"
+      (click)="clearSearch()"
+      title="Очистить поиск">
+      ✕
+    </button>
+  </div>
+
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Название</th>
+          <th>Производитель</th>
+          <th>Модель</th>
+          <th>Портов</th>
+          <th>Подключение</th>
+          <th>OSI</th>
+          <th>Действия</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of items">
+          <td>{{ item.id }}</td>
+          <td>{{ item.typeName }}</td>
+          <td>{{ item.manufacturer || '—' }}</td>
+          <td>{{ item.model || '—' }}</td>
+          <td>{{ item.defaultPortCount ?? '—' }}</td>
+          <td>{{ item.connectionType || '—' }}</td>
+          <td><span class="badge" *ngIf="item.osiLevel">{{ item.osiLevel }}</span><span *ngIf="!item.osiLevel">—</span></td>
+          <td class="actions">
+            @if (authService.canManageAdminEntities()) {
+              <button class="btn-edit" (click)="openEdit(item)">✏️</button>
+              <button class="btn-delete" (click)="delete(item.id!)">🗑️</button>
+            }
+          </td>
+        </tr>
+          <tr *ngIf="items.length === 0">
+            <td colspan="8" class="empty">
+              <ng-container *ngIf="searchText; else noData">
+                По запросу «{{ searchText }}» ничего не найдено
+              </ng-container>
+              <ng-template #noData>Нет данных</ng-template>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+  </div>
+  <!-- блок пагинации -->
+  <div class="pagination" *ngIf="totalElements > 0">
+    <div class="pagination-info">
+      Показано {{ items.length }} из {{ totalElements }}
+    </div>
+
+    <div class="pagination-controls">
+      <button
+        class="btn-page"
+        (click)="prevPage()"
+        [disabled]="currentPage === 0">
+        ←
+      </button>
+
+      <span class="page-indicator">
+        Страница {{ currentPage + 1 }} из {{ totalPages }}
+      </span>
+
+      <button
+        class="btn-page"
+        (click)="nextPage()"
+        [disabled]="currentPage >= totalPages - 1">
+        →
+      </button>
+    </div>
+
+    <div class="pagination-size">
+      <label>На странице:</label>
+      <select [ngModel]="pageSize" (ngModelChange)="changePageSize($event)" name="pageSize">
+        <option *ngFor="let size of pageSizeOptions" [ngValue]="size">{{ size }}</option>
+      </select>
+    </div>
+  </div>
+
+</div>

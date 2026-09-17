@@ -1,0 +1,54 @@
+<div class="dashboard">
+  <h1>Добро пожаловать, {{ username }}!</h1>
+  <p class="dashboard-subtitle">Панель управления сетевым оборудованием</p>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon">👥</div>
+      <div class="stat-info">
+        <div class="stat-value">{{ employeeCount }}</div>
+        <div class="stat-label">Сотрудников</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">🖥️</div>
+      <div class="stat-info">
+        <div class="stat-value">{{ equipmentCount }}</div>
+        <div class="stat-label">Оборудования</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">🔌️</div>
+      <div class="stat-info">
+        <div class="stat-value">{{ portsCount }}</div>
+        <div class="stat-label">Порты устройств</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">📁</div>
+      <div class="stat-info">
+        <div class="stat-value">{{ typesCount }}</div>
+        <div class="stat-label">Тип оборудования</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">🌐️</div>
+      <div class="stat-info">
+        <div class="stat-value">{{ ipCount }}</div>
+        <div class="stat-label">Адреса устройств</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">🔧️</div>
+      <div class="stat-info">
+        <div class="stat-value">{{ historiesCount }}</div>
+        <div class="stat-label">История обслуживания</div>
+      </div>
+    </div>
+  </div>
+</div>

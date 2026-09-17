@@ -1,0 +1,90 @@
+<div class="topology-page">
+  <header class="topology-header">
+    <h2>Топология сети</h2>
+    <div class="header-actions">
+      <button class="btn" (click)="loadTopology()" [disabled]="loading">
+        🔄 Обновить
+      </button>
+      <button class="btn" (click)="togglePhysics()" [disabled]="!graphData">
+        {{ physicsEnabled ? '⏸ Остановить физику' : '▶ Включить физику' }}
+      </button>
+      <button class="btn" (click)="fitToScreen()" [disabled]="!graphData">
+        ⤢ Уместить
+      </button>
+    </div>
+  </header>
+
+  <div class="topology-status" *ngIf="loading">Загрузка графа…</div>
+  <div class="topology-status error" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+  <div class="topology-toolbar" *ngIf="graphData && !loading">
+    <div class="stats">
+      Устройств: <b>{{ graphData.nodes.length }}</b> ·
+      Связей: <b>{{ graphData.edges.length }}</b>
+    </div>
+
+    <div class="legend">
+      <span class="legend-title">Фильтр / легенда:</span>
+      <label *ngFor="let item of legend" class="legend-item" [class.muted]="!item.enabled">
+        <input type="checkbox"
+               [checked]="item.enabled"
+               (change)="toggleStatusFilter(item)">
+        <span class="legend-dot" [style.background]="item.color"></span>
+        {{ item.label }}
+      </label>
+    </div>
+  </div>
+
+  <!-- Сам граф + боковая панель деталей -->
+  <div class="topology-body">
+    <div #networkContainer class="network-canvas"></div>
+
+    <aside class="details-panel" *ngIf="selectedNode">
+      <div class="details-header">
+        <h3>{{ selectedNode.label.split('\n')[0] }}</h3>
+        <button class="btn-icon" (click)="closeDetails()" title="Закрыть">✕</button>
+      </div>
+
+      <dl class="details-list">
+        <dt>Тип</dt>
+        <dd>{{ selectedNode.meta?.typeName || '—' }}</dd>
+
+        <dt>IP-адрес</dt>
+        <dd>{{ selectedNode.meta?.ipAddress || '—' }}</dd>
+
+        <dt>MAC</dt>
+        <dd>{{ selectedNode.meta?.macAddress || '—' }}</dd>
+
+        <dt>Серийный номер</dt>
+        <dd>{{ selectedNode.meta?.serialNumber || '—' }}</dd>
+
+        <dt>Статус</dt>
+        <dd>
+          <span class="status-badge"
+                [style.background]="selectedNode.color && (selectedNode.color | json).includes('background')
+                  ? ($any(selectedNode.color).background)
+                  : selectedNode.color">
+            {{ selectedNode.meta?.status || '—' }}
+          </span>
+        </dd>
+      </dl>
+
+      <div class="neighbors" *ngIf="selectedNeighbors.length">
+        <h4>Соседи ({{ selectedNeighbors.length }})</h4>
+        <ul class="neighbors-list">
+          <li *ngFor="let n of selectedNeighbors"
+              (click)="focusNeighbor(n.id)"
+              class="neighbor-item">
+            <span class="neighbor-dot"
+                  [style.background]="$any(n.color)?.background || n.color"></span>
+            {{ n.label.split('\n')[0] }}
+          </li>
+        </ul>
+      </div>
+
+      <div class="neighbors" *ngIf="!selectedNeighbors.length">
+        <p class="muted-text">Изолированный узел — соединений нет.</p>
+      </div>
+    </aside>
+  </div>
+</div>

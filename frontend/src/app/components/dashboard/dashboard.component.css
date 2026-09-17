@@ -1,0 +1,42 @@
+.dashboard h1 {
+  margin: 0 0 4px;
+  font-size: 24px;
+  color: #1a1a2e;
+}
+
+.dashboard-subtitle {
+  color: #888;
+  margin: 0 0 28px;
+  font-size: 14px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.stat-card {
+  background: #fff;
+  border-radius: 8px;
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.stat-icon {
+  font-size: 32px;
+}
+
+.stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+.stat-label {
+  font-size: 13px;
+  color: #888;
+}
